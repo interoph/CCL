@@ -3,16 +3,31 @@
 ; by lewis schmidt, 7/2/2015
  
 Select
- 
+
+; Products Built and active in the pharmacy formulary
 	Order_Folder_Description = a.long_description
 	, CareSet_Description = ocs.mnemonic
 	, CareSet_description_2 = uar_get_code_display(ocs.catalog_cd)
 	, order_sentence_clinical_display = os.order_sentence_display_line
 	, PRN_REASON = cv.display
 	, L.long_text
- 
+
+; Multum Products corresponding to the products in the active formulary
+ 	Outer_NDC = md.ndc_code
+	, outer2_ndc = mnoi.outer_ndc_code
+	, Inner_NDC = mnoi.inner_ndc_code
+	, M.drug_name
+	, brand = MB.BRAND_DESCRIPTION
+	, STRENGTH = MP.product_strength_description
+	, DOSEFORM = MDF.dose_form_description
+	, MD.inner_PACKAGE_SIZE
+	, INNER_UNIT = MU.unit_abbr
+	, MFG = MNS.source_desc
+	, md.obsolete_date
  
 from
+
+;active pharmacy formulary item tables
 	alt_sel_cat a
 	, alt_sel_list asl
 	, order_catalog_synonym ocs
@@ -23,7 +38,19 @@ from
 	, oe_field_meaning ofm ; IDENTIFY OS WITH PRN/SCH
 	, code_value cv ; TIE INTO THE SPECIFIC PRN REASON
 	, order_sentence_detail osd2 ; WORK AROUND TO FILTER PRN REASON
- 
+
+;mutum tables
+	MLTM_NDC_CORE_DESCRIPTION   MD
+	, MLTM_NDC_BRAND_NAME   MB
+	, MLTM_MMDC_NAME_MAP   MMN
+	, MLTM_DRUG_NAME   M
+	, MLTM_DOSE_FORM   MDF
+	, MLTM_PRODUCT_STRENGTH   MP
+	, MLTM_NDC_MAIN_DRUG_CODE   MNM
+	, MLTM_UNITS   MU
+	, MLTM_NDC_SOURCE   MNS
+	,MLTM_NDC_OUTER_INNER_MAP   MNOI
+
 Plan a
  
 Join asl
