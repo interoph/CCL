@@ -1,4 +1,4 @@
-; Carset in a Favorite Folder, find a prn comment in a careset
+; Careset in a Favorite Folder, find a prn comment in a careset
 ; it appears like there are many duplicates but that is because each order comment is unique.
 ; by lewis schmidt, 7/2/2015
  
