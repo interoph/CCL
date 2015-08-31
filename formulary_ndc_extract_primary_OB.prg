@@ -27,7 +27,7 @@ select distinct
 	, Primary_NDC = evaluate(mfoi.sequence, 1,"Primary", "")	
  
 ; Multum (M) Products corresponding to the products in the active formulary
-;	, MD.main_multum_drug_code  ;dnum
+	, MD.main_multum_drug_code  ;mmdc
  	, M_OUTER_NDC = md.ndc_code
 	, M_INNER_NDC = mnoi.inner_ndc_code
 ;	, MOB_Inner_NDC = mnicd.inner_ndc_code  ; 2469 inner ndc's
@@ -72,6 +72,7 @@ from
 	, mltm_ndc_outer_inner_map    mnoi				;
  
 ;multum tables, Orange book equivalency
+;	, mltm_ndc_core_description   mcd2				;  
 	, mltm_ndc_inner_core_desc 	  mnicd				;
 	, mltm_ndc_orange_book  	  mnob				;
  
@@ -144,14 +145,26 @@ join mnoi ;				mltm_ndc_outer_inner_map ->  M_OUTER2_NDC, M_INNER_NDC
 ; inner to outer ndc map
  
 ;multum orange book equivalency
+; other tables with orange_book_id
+; mltm_ndc_core_description
+; 
+
+;join mncd2
+;	where mncd2.ndc_code = mncd.ndc_code
+;	and mncd2.main_multum_drug_code 
+; med_product_id = med_product.med_def_cki
+
+
 join mnicd  ; MLTM_NDC_INNER_CORE_DESC, why is there ~2500 innerndc's
 	where mnicd.ndc_formatted = outerjoin(md.ndc_formatted)
 	
 ;Join MNICD ; 			MLTM_NDC_INNER_CORE_DESC  
 ;	where (select med.value from med_identifier med where med.med_identifier_type_cd = value(uar_get_code_by("MEANING", 11000,"INNER_NDC"))) = outerjoin(mnicd.inner_ndc_code) 	
+
+
  
 Join MNOB ;				MLTM_NDC_ORANGE_BOOK
-	Where mnob.orange_book_id = outerjoin(mnicd.orange_book_id)
+	Where mnob.orange_book_id = outerjoin(mncd2.orange_book_id)
 	
 	
  
