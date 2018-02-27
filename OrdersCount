@@ -1,42 +1,50 @@
 ; count orders and show the order and facility where it was ordered
 
-SELECT distinct
-The_Count = count(o.order_id) over (partition by o.synonym_id)
-,Catalog_Display = uar_get_code_display(o.catalog_cd)
-,o.order_id
-,O.ORDER_MNEMONIC
-;, O_CATALOG_mnemonic_type = UAR_GET_CODE_DISPLAY(ocs.mnemonic_type_cd)
-;,Facility_Display =  uar_get_code_display(e.loc_facility_cd)
-; , OA_COMMUNICATION_TYPE_DISP = UAR_GET_CODE_DISPLAY(OA.COMMUNICATION_TYPE_CD)
-; , OA.COMMUNICATION_TYPE_CD
-; , OA.order_locn_cd ; UNIT, IF THIS FIELD IS POPULATED
-; , OA.action_dt_tm ; ORDER ACTION DATETIME
-; , E.ENCNTR_ID
-; , E.END_EFFECTIVE_DT_TM
-; , E.BEG_EFFECTIVE_DT_TM
-; , E_LOC_NURSE_UNIT_DISP = UAR_GET_CODE_DISPLAY(E.LOC_NURSE_UNIT_CD)
+select 
 
-FROM
- ORDERS   O
-; , ORDER_ACTION   OA
+Count = count(o.order_id) 
+,CPOE_Order = o.order_mnemonic 
+;,uar_get_code_display(o.catalog_cd) 
+,Order_type = uar_get_code_display(ocs.mnemonic_type_cd)
+,Facility_Display = uar_get_code_display(e.loc_facility_cd)
+
+from 
+orders o 
 , order_catalog_synonym ocs
-,encounter e
+, encounter e
 
+Plan o
+where o.orig_order_dt_tm > sysdate - 7  ;integer determines the date back in days (sysdate)
+and o.order_status_cd = 2550.00; cs 6004, Ordered
+and o.catalog_type_cd = 2516.00; cs 6000, pharmacy
+and o.activity_type_cd = 705.00; cs 106, pharmacy = 705.00
+and o.template_order_id = 0; child orders are > 0
 
-PLAN O WHERE O.orig_order_dt_tm >= SYSDATE - 15
- and o.order_status_cd = 2550.00; cs 6004, Ordered
- and o.catalog_type_cd = 2516.00; cs 6000, pharmacy
- and o.activity_type_cd = 705.00; cs 106, pharmacy = 705.00
- AND O.template_order_id + 0 = 0 ; PARENT ORDERS ONLY, child orders are > 0
- AND O.orig_ord_as_flag + 0 = 0  ; NORMAL ORDERS
- 
-join ocs
-	where ocs.catalog_cd = o.catalog_cd
-
+Join OCS
+where o.catalog_cd = ocs.catalog_cd
+and ocs.mnemonic_type_cd in(2580, 2581, 614542, 2582, 614544, 614543, 2583, 614545); Brand Name, DCP, Cdisp, 
 join e
 where e.encntr_id = o.encntr_id
 
-;order by o.order_mnemonic, o.catalog_type_cd asc
+/*
+2580	Brand Name
+2581	Direct Care Provider
+614542	C - Dispensable Drug Names
+2582	Generic Name
+614548	Y - Generic Products
+614544	M - Generic Miscellaneous Products
+614543	E - IV Fluids and Nicknames
+614546	Outreach
+614547	PathLink
+2583	Primary
+2584	Rx Mnemonic
+2585	Surgery Med
+614549	Z - Trade Products
+614545	N - Trade Miscellaneous Products
+*/
 
+group by o.catalog_type_cd, o.catalog_cd, o.order_mnemonic, ocs.mnemonic_type_cd,e.loc_facility_cd
 
-WITH MAXREC = 10000, NOCOUNTER, SEPARATOR=" ", FORMAT, TIME = 30
+order by count(o.order_id) desc
+
+with maxrec = 500, time = 300
