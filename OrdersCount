@@ -22,26 +22,44 @@ and o.template_order_id = 0; child orders are > 0
 
 Join OCS
 where o.catalog_cd = ocs.catalog_cd
-and ocs.mnemonic_type_cd in(2580, 2581, 614542, 2582, 614544, 614543, 2583, 614545); Brand Name, DCP, Cdisp, 
+/*and ocs.mnemonic_type_cd in(
+							;CODE_VALUE	DISPLAY
+							2580	;Brand Name
+							2581	;Direct Care Provider
+							614542	;C - Dispensable Drug Names
+							2582	;Generic Name
+							614548	;Y - Generic Products
+							614544	;M - Generic Miscellaneous Products
+							614543	;E - IV Fluids and Nicknames
+							;614546	;Outreach
+							;614547	;PathLink
+							2583	;Primary
+							2584	;Rx Mnemonic
+							2585	;Surgery Med
+							614549	;Z - Trade Products
+							614545	;N - Trade Miscellaneous Products
+*/
+
 join e
 where e.encntr_id = o.encntr_id
+and e.loc_facility_cd in(
+						;CODE_VALUE	DISPLAY
+						21198290	;location
+						,271998575	;location
+						,271998583	;location
+						,271998479	;location
+						,276041517	;location
+						,276497813	;location
+						,344062579	;location
+						,349503863	;location
+						,499091795	;location
+						,516280427	;location
+						,416024841	;location
+						,428514323	;location
+						,275964153	;location
+						,275964173	;location
+						)
 
-/*
-2580	Brand Name
-2581	Direct Care Provider
-614542	C - Dispensable Drug Names
-2582	Generic Name
-614548	Y - Generic Products
-614544	M - Generic Miscellaneous Products
-614543	E - IV Fluids and Nicknames
-614546	Outreach
-614547	PathLink
-2583	Primary
-2584	Rx Mnemonic
-2585	Surgery Med
-614549	Z - Trade Products
-614545	N - Trade Miscellaneous Products
-*/
 
 group by o.catalog_type_cd, o.catalog_cd, o.order_mnemonic, ocs.mnemonic_type_cd,e.loc_facility_cd
 
