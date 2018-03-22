@@ -1,0 +1,20 @@
+SELECT distinct
+drc.updt_dt_tm ";;"
+, drc.active_ind
+, drc.dose_range_check_name
+
+
+FROM
+DOSE_RANGE_CHECK DRC
+, drc_premise dp
+
+
+Plan DRC
+where drc.active_ind = 1 ; we are only interested in active groupers order by drc.dose_range_check_name
+
+Join DP
+where dp.dose_range_check_id = drc.dose_range_check_id
+and dp.parent_premise_id = 0
+and dp.active_ind = 1
+
+with time =2
