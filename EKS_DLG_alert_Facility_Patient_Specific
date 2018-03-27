@@ -27,6 +27,7 @@ from
         , long_text   lt
         , long_text   lt2
         , encounter en
+        , encntr_alias ea
 
                 
 plan e
@@ -71,7 +72,9 @@ join en
                                                 )
 
         
-
+join ea
+       where o.encntr_id =ea.encntr_id
+       and EA.ENCNTR_ALIAS_TYPE_CD =1077
         
 with time = 600
 
