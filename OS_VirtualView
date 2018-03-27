@@ -1,0 +1,44 @@
+/*** Order, Order Sentence, Virtual View, DT_TM, Position, User . ***/
+
+SELECT
+synonym = ocs.mnemonic
+, synonym_type = uar_get_code_display(ocs.mnemonic_type_cd)
+, sentence = os.order_sentence_display_line
+, SynonymVirtualView = if(ocsfr.facility_cd = 0) "ALL"
+                        else uar_get_code_display(ocsfr.facility_cd)
+                        endif
+, last_update_dt_tm = os.updt_dt_tm "@SHORTDATETIME"
+, last_update_name_last = p.name_last
+, last_update_name_first = p.name_first
+, last_update_user_position = uar_get_code_display(p.position_cd)
+
+FROM
+  order_sentence   os
+  , order_catalog_synonym   ocs
+  , ocs_facility_r   ocsfr
+  ;, ord_cat_sent_r ocsr
+  , ord_cat_sent_r ocsr
+  , prsnl p
+
+plan ocs 
+  where ocs.catalog_cd = 2749283.00 ; ampicillin and ocs.active_ind = 1
+
+join os
+  where os.parent_entity_id = ocs.synonym_id
+
+join ocsfr
+  where ocsfr.synonym_id = ocs.synonym_id
+  and ocsfr.facility_cd in (273441825.00) ;   <---Location from CS220
+
+join ocsr
+  where ocs.synonym_id = ocsr.synonym_id
+
+join p
+  where os.updt_id = p.person_id
+
+ORDER BY
+  ocs.mnemonic_key_cap
+  , os.order_sentence_display_line
+  , SynonymVirtualView
+
+WITH time = 60
