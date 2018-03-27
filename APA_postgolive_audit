@@ -1,0 +1,109 @@
+/***************
+Original Query published by CHC 2010 by David Peacock
+
+******************/
+select
+
+Order_ID = o.order_id,
+
+Name=p.NAME_FULL_FORMATTED,
+
+FIN=ea.alias,
+
+Facility= (uar_get_code_display(e.LOC_FACILITY_CD)), 
+
+PRIMARY_MNEMONIC=O.HNA_ORDER_MNEMONIC,
+
+Order_Display = o.DEPT_MISC_LINE,
+
+Item_ID = op.Item_ID,
+
+Powerplan_Order =o.PATHWAY_CATALOG_ID,
+
+Updt_DT_TM =op.updt_dt_tm,
+
+Auto_Assign_Flag=op.auto_assign_flag,
+
+OrderingPerson = prs.name_full_formatted,
+
+NEED_RX_VERIFY_IND=O.NEED_RX_VERIFY_IND
+
+ 
+
+from
+
+ order_product OP,
+
+ orders o,
+
+ encntr_alias ea,
+
+ encounter e,
+
+ person p,
+
+ dummyt d, 
+
+ prsnl prs
+
+ 
+
+ 
+
+plan OP
+
+where op.auto_assign_flag not in (0, 1)
+
+ 
+
+join o
+
+where op.order_id = o.order_id and o.orig_order_dt_tm between cnvtdatetime("01-JAN-2018 0000") and cnvtdatetime("01-FEB-2018 2359")
+
+ 
+
+join ea
+
+where o.encntr_id =ea.encntr_id
+
+and EA.ENCNTR_ALIAS_TYPE_CD =1077
+
+ 
+
+join e
+
+where ea.encntr_id = e.encntr_id
+
+and e.LOC_FACILITY_CD = ##########    ; Enter the Facility Code Value from code set 220 
+
+ 
+
+join p
+
+where e.person_id = p.person_id
+
+;and p.NAME_LAST_KEY != "PRODTEST"  ;  If you have a standard naming convention for Test Patients, you can exlude them from the report.  
+ 
+
+join d
+
+ 
+
+join prs
+
+where o.ACTIVE_STATUS_PRSNL_ID = prs.person_id
+
+and prs.POSITION_CD not in (441, 2356532) 
+
+ 
+
+with outerjoin =d,
+
+nullreport
+
+go
+ 
+ 
+	
+
+ 
