@@ -1,48 +1,49 @@
-/*** Order, Order Sentence, Virtual View, DT_TM, Position, User . ***/
+select
 
-SELECT
-synonym = ocs.mnemonic
+ocs.mnemonic
 , synonym_type = uar_get_code_display(ocs.mnemonic_type_cd)
-, sentence = os.order_sentence_display_line
-, SynonymVirtualView = if(ocsfr.facility_cd = 0) "ALL"
-                        else uar_get_code_display(ocsfr.facility_cd)
-                        endif
+, os.order_sentence_display_line
+, SENTENCE_VIEW = uar_get_code_display(ocsfr.facility_cd)
+
+,OS_Encounter_Group = if(os.order_encntr_group_cd = 0) "ALL"
+						elseif(os.order_encntr_group_cd = 676841.00) "Acute Care"
+						elseif(os.order_encntr_group_cd = 676842.00) "Ambulatory Care"
+						elseif(os.order_encntr_group_cd = 4372507.00) "Clinic"
+						elseif(os.order_encntr_group_cd = 676843.00) "Emergency Department"
+						elseif(os.order_encntr_group_cd = 676839.00) "Long term Care"
+						elseif(os.order_encntr_group_cd = 676840.00) "Oncology"
+						endif
+;, oef.action_type_cd
+;, action_type = uar_get_code_display(oef.action_type_cd)	 
 , last_update_dt_tm = os.updt_dt_tm "@SHORTDATETIME"
 , last_update_name_last = p.name_last
 , last_update_name_first = p.name_first
 , last_update_user_position = uar_get_code_display(p.position_cd)
 
-FROM
-  order_sentence   os
-  , order_catalog_synonym   ocs
-  , ocs_facility_r   ocsfr
-  ;, ord_cat_sent_r ocsr
-  , ord_cat_sent_r ocsr
-  , prsnl p
+from order_sentence os
+, order_catalog_synonym ocs
+, ocs_facility_r ocsfr
+, order_entry_format oef
+, prsnl p
 
-plan ocs 
-  where ocs.catalog_cd = 2749283.00 ; ampicillin and ocs.active_ind = 1
-and ocs.active_ind = 1
-and ocs.activity_type_cd = 705.00
+plan os ;where os.usage_flag < 2 ; 2 = prescription
+  where os.parent_entity2_name not in ("ALT_SEL_CAT","RX_THERAP_SBSTTN","PATHWAY_COMP","PATHWAY_RULE") ; <--not favorites, PWP,   Careset, rules, etc.. 
+  and os.parent_entity_name not in ("ALT_SEL_CAT","RX_THERAP_SBSTTN","PATHWAY_COMP","PATHWAY_RULE")  
 
-join os
-  where os.parent_entity_id = ocs.synonym_id
-  and os.parent_entity2_name not in ("ALT_SEL_CAT","RX_THERAP_SBSTTN","PATHWAY_COMP","PATHWAY_RULE") ; <--not favorites, rules, etc.. 
-  and os.parent_entity_name not in ("ALT_SEL_CAT","RX_THERAP_SBSTTN","PATHWAY_COMP","PATHWAY_RULE") ; <--not favorites, rules, etc.. 
+join ocs where ocs.synonym_id = os.parent_entity_id
+	and ocs.catalog_type_cd 		= 2516
+	and ocs.active_ind 				= 1
+	and ocs.hide_flag 				= 0
+	and not ocs.mnemonic_key_cap 	= "ZZ*"
+	and ocs.catalog_cd = 2749283.00 ; ampicillin and ocs.active_ind = 1
 
-join ocsfr
-  where ocsfr.synonym_id = ocs.synonym_id
-;  and ocsfr.facility_cd in (273441825.00) ;   <---Location from CS220
+join oef where oef.oe_format_id = ocs.oe_format_id
 
-join ocsr
-  where ocs.synonym_id = ocsr.synonym_id
+join ocsfr where ocsfr.synonym_id = ocs.synonym_id
 
 join p
   where os.updt_id = p.person_id
+  
+order ocs.mnemonic, ocs.mnemonic_type_cd
 
-ORDER BY
-  ocs.mnemonic_key_cap
-  , os.order_sentence_display_line
-  , SynonymVirtualView
-
-WITH time = 300
+with maxrec = 1000, time = 30
