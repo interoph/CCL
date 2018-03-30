@@ -22,13 +22,17 @@ FROM
 
 plan ocs 
   where ocs.catalog_cd = 2749283.00 ; ampicillin and ocs.active_ind = 1
+and ocs.active_ind = 1
+and ocs.activity_type_cd = 705.00
 
 join os
   where os.parent_entity_id = ocs.synonym_id
+  and os.parent_entity2_name not in ("ALT_SEL_CAT","RX_THERAP_SBSTTN","PATHWAY_COMP","PATHWAY_RULE") ; <--not favorites, rules, etc.. 
+  and os.parent_entity_name not in ("ALT_SEL_CAT","RX_THERAP_SBSTTN","PATHWAY_COMP","PATHWAY_RULE") ; <--not favorites, rules, etc.. 
 
 join ocsfr
   where ocsfr.synonym_id = ocs.synonym_id
-  and ocsfr.facility_cd in (273441825.00) ;   <---Location from CS220
+;  and ocsfr.facility_cd in (273441825.00) ;   <---Location from CS220
 
 join ocsr
   where ocs.synonym_id = ocsr.synonym_id
@@ -41,4 +45,4 @@ ORDER BY
   , os.order_sentence_display_line
   , SynonymVirtualView
 
-WITH time = 60
+WITH time = 300
