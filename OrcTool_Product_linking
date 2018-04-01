@@ -56,7 +56,7 @@ where ocs.synonym_id=sir.synonym_id
 join mi 
 where sir.item_id=mi.item_id
 ;and mi.flex_type_cd = 665856.00	; Pharmacy
-and mi.med_identifier_type_cd = 3097.00 ; Description
+and mi.med_identifier_type_cd = value(uar_get_code_by("MEANING",11000,"DESC")); label description
 and mi.med_product_id =0
 ;and mi.active_ind=1
 ;and mi.med_type_flag = 0 ; product, not ivset, compound, etc..
