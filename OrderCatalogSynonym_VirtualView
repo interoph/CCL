@@ -1,0 +1,31 @@
+SELECT DISTINCT
+ Primary = UAR_GET_CODE_DISPLAY(OCS.CATALOG_CD)
+ , Synonym = ocs.mnemonic
+ , MNEMONIC_TYPE = UAR_GET_CODE_DISPLAY(OCS.MNEMONIC_TYPE_CD)
+ , Orders_View = 	if(ocsfr.facility_cd = 0) "ALL"
+					else uar_get_code_display(ocsfr.facility_cd)
+					endif
+
+FROM
+ order_catalog   oc
+ ,order_catalog_synonym   ocs
+ , ocs_facility_r ocsfr
+
+plan oc 
+	where oc.active_ind = 1
+	and oc.catalog_type_cd = 2516
+	and oc.active_ind = 1
+	and oc.primary_mnemonic != "ZZ*"
+
+join ocs 
+	where oc.catalog_cd = ocs.catalog_cd
+	and ocs.mnemonic != "zz*"
+	and ocs.active_ind = 1
+
+join ocsfr
+	where ocsfr.synonym_id = ocs.synonym_id
+
+order by ocs.catalog_cd, ocs.mnemonic, ocs.mnemonic_type_cd, Orders_View
+
+with time = 60
+go
