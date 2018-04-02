@@ -1,0 +1,83 @@
+select  ocs.synonym_id, 
+        mnemonic_type = uar_get_code_display(ocs.mnemonic_type_cd),
+        ocs.mnemonic,
+        ocs.cki,
+       Ê;Other NDC's are avalible to be susbsituted (if not DAW).
+        NDC_substitution_available = evaluate(mndc.main_multum_drug_code, 0, "No", 
+            evaluate(trim(cnvtstringchk(mdnm.function_id)), "59", "Yes", "60", "Yes", "No")),
+        reference_info = "           -->",
+       Ê;The name of the Multum synonym
+        multum_synonym_name = mdn.drug_name,
+       Ê;Indicates that this synonym is hidden
+        hidden = evaluate(ocs.hide_flag, 0, "No", "Yes"),
+       Ê;Indicates the synonym is obsolete
+        cki_obsolete_synonym = evaluate(mdn.is_obsolete, "T","Yes","No"),
+       Ê;The CSA schedule of the formulation (if any)
+        mmdc_csa_schedule = evaluate(mmnm.main_multum_drug_code, 0, "N/A", mnmdc.csa_schedule),
+        analysis_info = "          -->",
+       Ê;Indicates the synonym has a malformed or unexpected CKI, synonym CKI's should be of the format MUL.ORD-SYN!#
+        bad_synonym_cki_format = evaluate(findstring("MUL.ORD-SYN", ocs.cki),0,"Yes", "No"),
+       Ê;Indicates the synonym's cki does not correspond to a Multum synonym, the number following the "!"
+        cki_broken_link = evaluate(mdn.drug_synonym_id, 0.00, "Yes", "No"),
+       Ê;Indicates the if the associated multum synonym is not actualy a product.
+        non_product_synonym_cki = evaluate(trim(cnvtstringchk(mdnm.function_id)), "59", "No", "60", "No", "0", "N/A", "Yes"), 
+       Ê;Indicates the the MMCD link (formulation link) is broken for this synonym
+        mmdc_no_link = evaluate(mmnm.main_multum_drug_code, 0, "Yes", "No")
+        
+from    order_catalog_synonym ocs, 
+        mltm_drug_name mdn,
+        mltm_drug_name_map mdnm,
+        mltm_mmdc_name_map mmnm,
+        mltm_ndc_main_drug_code mnmdc,
+        mltm_ndc_core_description mndc
+        
+plan ocs
+    where ocs.active_ind = 1
+      and ocs.mnemonic_type_cd in
+         Ê;--Code values from 
+         Ê;select code_value from code_value where cdf_meaning in
+         Ê;("GENERICPROD","GENERICTOP","TRADEPROD","TRADETOP") and code_set = 6011 go
+-614,548,614,544,614,000,000,000
+     and  ocs.cki not in(
+         Ê;--All CKIs reference multum generic product with valid NDCs
+          select concat("MUL.ORD-SYN!",trim(cnvtstring(mmnm.drug_synonym_id)))
+          from   mltm_mmdc_name_map mmnm,
+                 mltm_ndc_core_description mncd
+          where  mmnm.function_id = 59
+          and    mncd.main_multum_drug_code = mmnm.main_multum_drug_code
+          and    mncd.repackaged = "F"
+          and    mncd.obsolete_date is NULL
+            Ê;--Remove any Brand Drug Names
+          and  mncd.brand_code not in
+            ( select drug_synonym_id from mltm_drug_name_map where function_id = 17 ))
+     and  ocs.cki not in(
+         Ê;--All CKIs reference multum trade product with valid NDCs   
+          select concat("MUL.ORD-SYN!",trim(cnvtstring(mmnm.drug_synonym_id)))
+          from   mltm_mmdc_name_map mmnm,
+                 mltm_drug_name_derivation mdnd,
+                 mltm_ndc_core_description mncd
+          where  mmnm.function_id = 60
+            and  mncd.repackaged = "F"
+            and  mncd.obsolete_date is NULL
+            and  mdnd.derived_drug_synonym_id = mmnm.drug_synonym_id
+            and  mdnd.derived_function_id = mmnm.function_id
+            and  mdnd.base_function_id = 17
+            and  mncd.main_multum_drug_code = mmnm.main_multum_drug_code
+            and  mncd.brand_code = mdnd.base_drug_synonym_id)
+join mdn
+    where outerjoin(ocs.cki) = concat("MUL.ORD-SYN!",trim(cnvtstring(mdn.drug_synonym_id)))
+join mdnm
+    where outerjoin(mdn.drug_synonym_id) = mdnm.drug_synonym_id
+join mmnm
+    where outerjoin(mdn.drug_synonym_id) = mmnm.drug_synonym_id
+join mnmdc
+    where outerjoin(mmnm.main_multum_drug_code) = mnmdc.main_multum_drug_code
+join mndc
+    where mndc.main_multum_drug_code = outerjoin(mnmdc.main_multum_drug_code)
+      and mndc.repackaged = outerjoin("F")
+      and nullind(mndc.obsolete_date) = outerjoin(1)
+group by ocs.synonym_id, ocs.mnemonic_type_cd, ocs.mnemonic, mdn.drug_name, ocs.hide_flag, ocs.cki, 
+mdn.drug_synonym_id, mdnm.function_id, mdn.is_obsolete, mmnm.main_multum_drug_code,
+mnmdc.csa_schedule, mndc.main_multum_drug_code
+order by ocs.synonym_id
+go
