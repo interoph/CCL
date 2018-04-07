@@ -1,0 +1,140 @@
+
+/*Oncology Orders based on Therapeutic_Category */
+SELECT Distinct
+
+	OrderCatalog_mnemonic_name =ocs.mnemonic_key_cap
+	, Order_type = uar_get_code_display(ocs.mnemonic_type_cd)
+	, OrderCatalog_Therapeutic_Category = A.LONG_DESCRIPTION
+;		, ocs.virtual_view
+    , Multum_Therapeutic_Category = M.CATEGORY_NAME
+;	, oef.oe_format_name
+
+FROM
+	ALT_SEL_CAT   A
+	, alt_sel_list   ASL
+	, order_catalog_synonym   OCS
+	, person   P
+	, order_catalog   oc
+	, MLTM_DRUG_CATEGORIES M
+	, MLTM_CATEGORY_DRUG_XREF   MC
+
+Plan A 
+	where A.AHFS_IND = 1
+	and A.Long_Description in (
+     ;ORDERCATALOG_THERAPEUTIC_CATEGORY
+	"bisphosphonates"
+	,"antiviral agents"
+	,"antineoplastics"
+	,"alkylating agents"
+	,"antineoplastic antibiotics"
+	,"antimetabolites"
+	,"antineoplastic hormones"
+	,"miscellaneous antineoplastics"
+	,"mitotic inhibitors"
+	,"radiopharmaceuticals"
+	,"biologicals"
+	,"colony stimulating factors"
+	,"immune globulins"
+	,"erythropoiesis-stimulating agents"
+	,"toxoids"
+	,"miscellaneous biologicals"
+	,"immunologic agents"
+	,"interferons"
+	,"immunosuppressive monoclonal antibodies"
+	,"immunosuppressive agents"
+	,"anti-CTLA-4 monoclonal antibodies"
+	,"other immunostimulants"
+	,"immunostimulants"
+	,"interleukin inhibitors"
+	,"interleukins"
+	,"CD30 monoclonal antibodies"
+	,"antineoplastic monoclonal antibodies"
+	,"antineoplastic interferons"
+	,"sclerosing agents"
+	,"therapeutic radiopharmaceuticals"
+	,"miscellaneous metabolic agents"
+	,"integrase strand transfer inhibitor"
+	,"antineoplastic detoxifying agents"
+	,"mTOR kinase inhibitors"
+	,"multikinase inhibitors"
+	,"BCR-ABL tyrosine kinase inhibitors"
+	,"CD52 monoclonal antibodies"
+	,"CD33 monoclonal antibodies"
+	,"CD20 monoclonal antibodies"
+	,"VEGF/VEGFR  inhibitors"
+	,"mTOR inhibitors"
+	,"EGFR inhibitors"
+	,"HER2 inhibitors"
+	,"histone deacetylase inhibitors"
+	,"bone resorption inhibitors"
+	,"antigonadotropic agents"
+	,"selective estrogen receptor modulators"
+	,"gonadotropin-releasing hormone antagonists"
+	,"antiandrogens"
+	,"aromatase inhibitors"
+	,"estrogen receptor antagonists"
+	,"progesterone receptor modulators"
+	,"trifunctional monoclonal antibodies"
+	,"hedgehog pathway inhibitors"
+	,"topical antineoplastics"
+	,"proteasome inhibitors"
+	,"phosphate binders"
+	,"NK1 receptor antagonists"
+	,"neprilysin inhibitors"
+	,"CD38 monoclonal antibodies"
+	,"anti-PD-1 monoclonal antibodies"
+	,"PARP inhibitors"
+	,"antineoplastic combinations"
+	,"PI3K inhibitors"
+	,"CDK 4/6 inhibitors"
+	,"calcimimetics"
+	,"VMAT2 inhibitors"
+	)
+
+Join ASL 
+	where asl.alt_sel_category_id = a.alt_sel_category_id
+
+Join ocs 
+	where asl.synonym_id = ocs.synonym_id
+	and ocs.active_ind =1
+	and ocs.catalog_type_cd = 2516.00
+	and ocs.mnemonic != "zz"
+	and ocs.mnemonic != "ZZ"
+	and ocs.mnemonic_type_cd in (
+;		CODE_VALUE	DISPLAY
+       2580.00;	Brand Name
+       ,2581.00;	Direct Care Provider
+     ,614542.00;	C - Dispensable Drug Names
+       ,2582.00;	Generic Name
+     ,614548.00;	Y - Generic Products
+     ,614544.00;	M - Generic Miscellaneous Products
+     ,614543.00;	E - IV Fluids and Nicknames
+       ,2583.00;	Primary
+     ,614549.00;	Z - Trade Products
+     ,614545.00;	N - Trade Miscellaneous Products
+								)
+
+Join P 
+ where p.person_id = ocs.updt_id
+
+
+Join OC 
+ where oc.catalog_cd = ocs.catalog_cd
+ and oc.active_ind = 1
+ and oc.primary_mnemonic != "zz*"
+ and oc.primary_mnemonic != "ZZ"
+
+JOIN MC 
+	WHERE substring(9,15,(OC.cki)) = MC.drug_identifier
+	
+
+JOIN M 
+	WHERE MC.MULTUM_CATEGORY_ID = M.MULTUM_CATEGORY_ID ; therapeutic Class
+
+ORDER BY
+
+;	OC.Description
+	OCS.mnemonic_key_cap
+
+
+WITH SEPARATOR=" ", FORMAT, time = 1
