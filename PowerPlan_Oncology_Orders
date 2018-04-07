@@ -1,0 +1,57 @@
+/*Powerplans, Plan = oncology, orders, os, etc... */
+/*broke now, will work on it */
+
+select distinct
+
+                p.plan_name
+                ;pcg.pathway_catalog_id
+;                , pc.active_ind
+;                , pc.description
+;                , pc.updt_dt_tm
+;                , pr.target_description
+;                , ocs.mnemonic
+;                , ord.ordered_as_mnemonic
+from
+                pathway_customized_plan   p
+                , pathway_catalog   pc
+;                , pathway_rule   pr
+;                , pathway_comp   pca
+;                , order_catalog_synonym   ocs
+;                , orders   ord
+
+plan p 
+Where p.active_ind = 1
+
+outer join pc where pc.pathway_catalog_id = p.pathway_catalog_id
+;and pc.active_ind =1
+
+;join pr 
+;where pr.pathway_customized_plan_id = p.pathway_customized_plan_id
+
+;join pca 
+;where pca.pathway_uuid = pr.target_uuid
+
+;join ocs 
+;where ocs.synonym_id = pca.parent_entity_id
+
+;join ord 
+;where ord.catalog_cd = ocs.catalog_cd
+
+/*
+group by
+                p.plan_name
+                , pc.active_ind
+                , pc.description
+                , pc.updt_dt_tm
+                , pr.target_description
+                , ocs.mnemonic
+                , ord.ordered_as_mnemonic
+
+order by
+                p.plan_name
+                , pc.description
+                , pr.target_description
+                , ocs.mnemonic
+                , ord.ordered_as_mnemonic
+*/
+with nocounter, separator=" ", format , time = 155
