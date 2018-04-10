@@ -6,9 +6,8 @@ updates and modifications starting 3/27/2018
 
 ******************/
 select
-
 Order_ID = o.order_id
-,Name=p.NAME_FULL_FORMATTED,
+,Name=p.NAME_FULL_FORMATTED
 ,FIN=ea.alias
 ,Facility= (uar_get_code_display(e.LOC_FACILITY_CD))
 ,PRIMARY_MNEMONIC=O.HNA_ORDER_MNEMONIC
@@ -26,8 +25,8 @@ order_product OP
 ,encntr_alias ea
 ,encounter e
 ,person p
-,dummyt d
 ,prsnl prs
+,dummyt d
 
 plan OP
 where op.auto_assign_flag not in (0, 1)
@@ -59,19 +58,17 @@ and e.loc_facility_cd in(
 						,275964153	;location
 						,275964173	;location
 						)
-
  
 join p
 where e.person_id = p.person_id
 ;and p.NAME_LAST_KEY != "PRODTEST"  ;  If you have a standard naming convention for Test Patients, you can exlude them from the report.  
- 
-join d
 
 join prs
-
 where o.ACTIVE_STATUS_PRSNL_ID = prs.person_id
-and prs.POSITION_CD not in (441, 2356532) 
+;and prs.POSITION_CD not in (441, 2356532) 
 
-with outerjoin =d,nullreport
+join d
+
+with outerjoin = d,nullreport, time = 300
 
 go
