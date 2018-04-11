@@ -28,13 +28,17 @@ Order_ID = o.order_id
 , rpaga.med_filter_ind
 ,Order_Route = uar_get_code_display(rpaga.route_cd)
 ,Order_Form =  uar_get_code_display(rpaga.form_cd)
+
+
 ,APA_Tier_4_Logic_Form_match = "Tier_4     -->"
 ,Order_Form =  uar_get_code_display(rpaga.form_cd)
 ,APA_Tier_5_Logic_Route_Form_Compatibility = "Tier_5     -->"
 ,Order_Form =  uar_get_code_display(rpaga.form_cd)
 ,Order_Route = uar_get_code_display(rpaga.route_cd)
 
-,APA_Tier_6_Logic = "Tier_6     -->"
+,APA_Tier_6_Logic_QPD = "Tier_6     -->"
+
+
 
 ,NEED_RX_VERIFY = 	if(O.NEED_RX_VERIFY_IND = 0) "Does not Need Verification"
 					elseif (O.NEED_RX_VERIFY_IND = 1) "needs verification"
