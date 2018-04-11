@@ -37,7 +37,6 @@ plan ocs
          ;--Code values from 
          ;select code_value from code_value where cdf_meaning in
          ;("GENERICPROD","GENERICTOP","TRADEPROD","TRADETOP") and code_set = 6011 go
--614,548,614,544,614,000,000,000
      and  ocs.cki not in(
          ;--All CKIs reference multum generic product with valid NDCs
           select concat("MUL.ORD-SYN!",trim(cnvtstring(mmnm.drug_synonym_id)))
