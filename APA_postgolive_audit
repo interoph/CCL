@@ -18,10 +18,38 @@ Order_ID = o.order_id
 ,Auto_Assign_Flag=op.auto_assign_flag
 ,OrderingPerson = prs.name_full_formatted
 ,NEED_RX_VERIFY_IND=O.NEED_RX_VERIFY_IND
+; rava
+, rava.discern_auto_verify_flag
+, rava.ic_auto_verify_flag
+;rpaga
+, uar_get_code_display(rpaga.encntr_type_cd)
+, rpaga.continuous_filter_ind
+, rpaga.intermittent_filter_ind
+, rpaga.med_filter_ind
+,Order_Route = uar_get_code_display(rpaga.route_cd)
+,Order_Form =  uar_get_code_display(rpaga.form_cd)
+,Patient_Location = uar_get_code_display(rpaga.pat_locn_cd)
+,Facility = uar_get_code_display(rpaga.facility_cd)
+;Rpaia
+,Order_Free_text_Dose = rpaia.freetext_dose
+,Order_Strength = rpaia.strength
+,Order_Strength_unit = uar_get_code_display(rpaia.strength_unit_cd)
+,Order_volume = rpaia.volume
+,Order_volume_unit = uar_get_code_display(rpaia.volume_unit_cd)
+; RPAA
+, rpaa.status_message
+, rpaa.report_level_flag
+
+
+
 
 from
 order_product OP
 ,orders o
+, RX_AUTO_VERIFY_AUDIT RAVA
+, RX_PRODUCT_ASSIGN_GROUP_AUDIT RPAGA
+, RX_PRODUCT_ASSIGN_ITEM_AUDIT RPAIA
+, RX_PRODUCT_ASSIGN_AUDIT RPAA
 ,encntr_alias ea
 ,encounter e
 ,person p
@@ -34,6 +62,19 @@ where op.auto_assign_flag not in (0, 1)
 join o
 where op.order_id = o.order_id 
 and o.orig_order_dt_tm between cnvtdatetime("01-JAN-2018 0000") and cnvtdatetime("01-FEB-2018 2359")
+
+join RAVA
+where rava.order_id = outerjoin(o.order_id)
+
+join RPAGA
+where rpaga.catalog_group_id = rava.catalog_group_id
+
+join rpaia
+Where rpaia.catalog_group_id = rpaga.catalog_group_id
+
+join rpaa
+where rpaa.catalog_group_id = rava.catalog_group_id
+
 
 join ea
 where o.encntr_id =ea.encntr_id
