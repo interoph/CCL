@@ -2,26 +2,26 @@ select  ocs.synonym_id,
         mnemonic_type = uar_get_code_display(ocs.mnemonic_type_cd),
         ocs.mnemonic,
         ocs.cki,
-       Ê;Other NDC's are avalible to be susbsituted (if not DAW).
+       ;Other NDC's are avalible to be susbsituted (if not DAW).
         NDC_substitution_available = evaluate(mndc.main_multum_drug_code, 0, "No", 
             evaluate(trim(cnvtstringchk(mdnm.function_id)), "59", "Yes", "60", "Yes", "No")),
         reference_info = "           -->",
-       Ê;The name of the Multum synonym
+       ;The name of the Multum synonym
         multum_synonym_name = mdn.drug_name,
-       Ê;Indicates that this synonym is hidden
+       ;Indicates that this synonym is hidden
         hidden = evaluate(ocs.hide_flag, 0, "No", "Yes"),
-       Ê;Indicates the synonym is obsolete
+       ;Indicates the synonym is obsolete
         cki_obsolete_synonym = evaluate(mdn.is_obsolete, "T","Yes","No"),
-       Ê;The CSA schedule of the formulation (if any)
+       ;The CSA schedule of the formulation (if any)
         mmdc_csa_schedule = evaluate(mmnm.main_multum_drug_code, 0, "N/A", mnmdc.csa_schedule),
         analysis_info = "          -->",
-       Ê;Indicates the synonym has a malformed or unexpected CKI, synonym CKI's should be of the format MUL.ORD-SYN!#
+       ;Indicates the synonym has a malformed or unexpected CKI, synonym CKI's should be of the format MUL.ORD-SYN!#
         bad_synonym_cki_format = evaluate(findstring("MUL.ORD-SYN", ocs.cki),0,"Yes", "No"),
-       Ê;Indicates the synonym's cki does not correspond to a Multum synonym, the number following the "!"
+       ;Indicates the synonym's cki does not correspond to a Multum synonym, the number following the "!"
         cki_broken_link = evaluate(mdn.drug_synonym_id, 0.00, "Yes", "No"),
-       Ê;Indicates the if the associated multum synonym is not actualy a product.
+       ;Indicates the if the associated multum synonym is not actualy a product.
         non_product_synonym_cki = evaluate(trim(cnvtstringchk(mdnm.function_id)), "59", "No", "60", "No", "0", "N/A", "Yes"), 
-       Ê;Indicates the the MMCD link (formulation link) is broken for this synonym
+       ;Indicates the the MMCD link (formulation link) is broken for this synonym
         mmdc_no_link = evaluate(mmnm.main_multum_drug_code, 0, "Yes", "No")
         
 from    order_catalog_synonym ocs, 
@@ -34,12 +34,12 @@ from    order_catalog_synonym ocs,
 plan ocs
     where ocs.active_ind = 1
       and ocs.mnemonic_type_cd in
-         Ê;--Code values from 
-         Ê;select code_value from code_value where cdf_meaning in
-         Ê;("GENERICPROD","GENERICTOP","TRADEPROD","TRADETOP") and code_set = 6011 go
+         ;--Code values from 
+         ;select code_value from code_value where cdf_meaning in
+         ;("GENERICPROD","GENERICTOP","TRADEPROD","TRADETOP") and code_set = 6011 go
 -614,548,614,544,614,000,000,000
      and  ocs.cki not in(
-         Ê;--All CKIs reference multum generic product with valid NDCs
+         ;--All CKIs reference multum generic product with valid NDCs
           select concat("MUL.ORD-SYN!",trim(cnvtstring(mmnm.drug_synonym_id)))
           from   mltm_mmdc_name_map mmnm,
                  mltm_ndc_core_description mncd
@@ -47,11 +47,11 @@ plan ocs
           and    mncd.main_multum_drug_code = mmnm.main_multum_drug_code
           and    mncd.repackaged = "F"
           and    mncd.obsolete_date is NULL
-            Ê;--Remove any Brand Drug Names
+          ;--Remove any Brand Drug Names
           and  mncd.brand_code not in
             ( select drug_synonym_id from mltm_drug_name_map where function_id = 17 ))
      and  ocs.cki not in(
-         Ê;--All CKIs reference multum trade product with valid NDCs   
+         ;--All CKIs reference multum trade product with valid NDCs   
           select concat("MUL.ORD-SYN!",trim(cnvtstring(mmnm.drug_synonym_id)))
           from   mltm_mmdc_name_map mmnm,
                  mltm_drug_name_derivation mdnd,
