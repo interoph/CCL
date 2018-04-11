@@ -24,6 +24,12 @@ Order_ID = o.order_id
   ( template_order_flag of 2, 3, 4, or 6)
 */
 ,NEED_RX_VERIFY_IND=O.NEED_RX_VERIFY_IND
+,need_rx_verify_ind_uar = uar_get_code_description(o.need_rx_verify_ind)
+,need_rx_verify_ind_ifelse = 	if(o.need_rx_verify_ind = 0 ) "does not need verification"
+				else if(o.need_rx_verify_ind = 1 ) "needs verification"
+				else if(o.need_rx_verify_ind = 2 ) "rejected or halted"
+				else if(o.need_rx_verify_ind > 2 ) "rejected or halted,not applicable for continuing child orders
+				end if
 
 ; RAVA
 /*flag representing current order catalog's auto verification settings for discern alerts.  
@@ -35,7 +41,17 @@ FLAG_VALUE	DESCRIPTION				DEFINITION
 3.00		Yes w/Reason			Only auto verify if a reason was provided with the alert(s).
 4.00		Yes						Auto verify regardless of alerts.
 */
-, rava.discern_auto_verify_flag
+
+, OC_AV_DISCERN_ALERT_SETTING = rava.discern_auto_verify_flag
+
+,ordercatalog_autoverify_setting_discernalert = 
+		if(rava.discern_auto_verify_flag = 0.00) "not set"
+		else if (rava.discern_auto_verify_flag = 1.00) "no auto verification performed"
+		else if (rava.discern_auto_verify_flag = 2.00) "If alerts exist, auto verification is not performed"
+		else if (rava.discern_auto_verify_flag = 3.00) "Only auto verify if a reason was provided with the alert(s)."
+		else if (rava.discern_auto_verify_flag = 4.00) "Auto verify regardless of alerts."
+		end if
+, OC_AV_DISCERN_ALERT_SETTING_uar = uar_get_code_description(rava.discern_auto_verify_flag)
 
 /*
 flag representing current order catalog's auto verification settings for interaction checking.  
@@ -46,9 +62,15 @@ FLAG_VALUE	DESCRIPTION				DEFINITION
 2.00		No w/Clinical Checking	If alerts exist, auto verification is not performed.
 3.00		Yes w/Reason			Only auto verify if a reason was provided with the alert(s).
 4.00		Yes						Auto verify regardless of alerts.
-
 */
 , rava.ic_auto_verify_flag
+, OC_AV_IC_Setting_ifthen = 	if ( rava.ic_auto_verify_flag = 0.00 ) "Not set"
+			else if ( rava.ic_auto_verify_flag = 1.00 ) "No auto verification performed."
+			else if ( rava.ic_auto_verify_flag = 2.00 ) "If alerts exist, auto verification is not performed."
+			else if ( rava.ic_auto_verify_flag = 3.00 ) "Only auto verify if a reason was provided with the alert(s)."
+			else if ( rava.ic_auto_verify_flag = 4.00 ) "Auto verify regardless of alerts."
+			end if
+, oc_av_ic_settings_uar = uar_get_code_description(rava.ic_auto_verify_flag)
 ;rpaga
 , uar_get_code_display(rpaga.encntr_type_cd)
 , rpaga.continuous_filter_ind
