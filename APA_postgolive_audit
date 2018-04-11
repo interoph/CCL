@@ -65,12 +65,19 @@ text description of a specific event that occurred during the auto product assig
 */
 , rpaa.status_message
 
-,RPAA_Status_Number =  
+,broken_RPAA_Status_Number =  
 if(rpaa.status_number = 0.00) "Founda  match successfully.  Matching item is recorded in set_item_id or item_id field"
 elseif(rpaa.status_number = 1.00) "fail to match because of reasons recorded in status_number and status_string fields"
 elseif(rpaa.status_number = 2.00) "Addiitonal information about a specific event with details recorded in status_number and status_string fields."
 endif
-, rpaa.report_level_flag
+
+/*
+	FLAG_VALUE	DESCRIPTION	DEFINITION
+	          0.00	Audit	Found a match successfully.  Matching item is recorded in set_item_id or item_id field.
+	          1.00	Info	Fail to match because of reasons recorded in status_number and status_string fields
+	          2.00	Debug	Additional information about a specific event with details recorded in status_number and status_string fields.
+*/
+,broken_rpaa_report_level = rpaa.report_level_flag
 
 
 
