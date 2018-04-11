@@ -18,7 +18,7 @@ Order_ID = o.order_id
 					elseif (O.NEED_RX_VERIFY_IND > 2) "rejected or halted child order"
 					endif
 
-;,need_rx_verify = uar_get_code_description(o.need_rx_verify_ind)
+
 ; RAVA
 /*flag representing current order catalog's auto verification settings for discern alerts.  
 for iv set, this is the flag on the catalog of the matching iv set.
@@ -34,13 +34,6 @@ for iv set, this is the flag on the catalog of the matching iv set.
 /*
 flag representing current order catalog's auto verification settings for interaction checking.  
 for iv set, this is the flag on the catalog of the matching iv set.
-FLAG_VALUE	DESCRIPTION				DEFINITION
-0.00		Not set					Not set
-1.00		No						No auto verification performed.
-2.00		No w/Clinical Checking	If alerts exist, auto verification is not performed.
-3.00		Yes w/Reason			Only auto verify if a reason was provided with the alert(s).
-4.00		Yes						Auto verify regardless of alerts.
-
 */
 
 ,OrderCatalog_AutoVerify_InteractionChecking_Setting = 
@@ -50,9 +43,6 @@ FLAG_VALUE	DESCRIPTION				DEFINITION
 				elseif(rava.ic_auto_verify_flag = 3.00) "Only autoverify if a reason was provided with the alert(s)"
 				elseif(rava.ic_auto_verify_flag = 4.00) "Auto verify regardless of alerts"
 				endif
-														
-;,order_catalog_av_ic_setting = uar_get_code_definition(rava.ic_auto_verify_flag)
-
 
 ;rpaga
 ,Encounter_type= uar_get_code_display(rpaga.encntr_type_cd)
@@ -74,14 +64,7 @@ FLAG_VALUE	DESCRIPTION				DEFINITION
 text description of a specific event that occurred during the auto product assignment process.
 */
 , rpaa.status_message
-/*
-0: audit - find a match successfully.  matching item is recorded in set_item_id or item_id field.
-1: info - fail to match because of reasons recorded in status_number and status_string fields
-FLAG_VALUE	DESCRIPTION		DEFINITION
-0.00		Audit			Found a match successfully.  Matching item is recorded in set_item_id or item_id field
-1.00		Info			Fail to match because of reasons recorded in status_number and status_string fields
-2.00		Debug			Additional information about a specific event with details recorded in status_number and status_string fields.
-*/
+
 ,RPAA_Status_Number =  
 if(rpaa.status_number = 0.00) "Founda  match successfully.  Matching item is recorded in set_item_id or item_id field"
 elseif(rpaa.status_number = 1.00) "fail to match because of reasons recorded in status_number and status_string fields"
