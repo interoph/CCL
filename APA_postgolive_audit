@@ -1,17 +1,39 @@
 select
 Order_ID = o.order_id
-,Name=p.NAME_FULL_FORMATTED
-,FIN=ea.alias
-,Facility= (uar_get_code_display(e.LOC_FACILITY_CD))
-,PRIMARY_MNEMONIC=O.HNA_ORDER_MNEMONIC
-,Order_Display = o.DEPT_MISC_LINE
 ,Item_ID = op.Item_ID
+,Pt_Name=p.NAME_FULL_FORMATTED
+,Pt_FIN=ea.alias
+,OrderingPerson = prs.name_full_formatted
+,Encounter_type= uar_get_code_display(rpaga.encntr_type_cd)
+,Patient_Location = uar_get_code_display(rpaga.pat_locn_cd)
+,Facility = uar_get_code_display(rpaga.facility_cd)
+;,PRIMARY_MNEMONIC=O.HNA_ORDER_MNEMONIC
+,PowerOrder = ocs.mnemonic
+,PowerOrder_type = uar_get_code_display(ocs.mnemonic_type_cd)
+,Order_Display = o.DEPT_MISC_LINE
 ,Powerplan_Order =o.PATHWAY_CATALOG_ID
 ,Updt_DT_TM =op.updt_dt_tm
 ,Auto_Assign_Flag=op.auto_assign_flag
-,OrderingPerson = prs.name_full_formatted
 /*indicates if pharmacy verification is needed:
 */
+,APA_Tier_1_Logic = "Tier_1     -->"
+,PowerOrder = ocs.mnemonic
+,Item_ID = op.Item_ID
+,Product_description = id.unique_field 
+
+,APA_Tier_2_Logic = "Tier_2     -->"
+, rpaga.continuous_filter_ind
+, rpaga.intermittent_filter_ind
+, rpaga.med_filter_ind
+,Order_Route = uar_get_code_display(rpaga.route_cd)
+,APA_Tier_3_Logic = "Tier_3     -->"
+,Order_Form =  uar_get_code_display(rpaga.form_cd)
+,APA_Tier_4_Logic = "Tier_4     -->"
+,Order_Form =  uar_get_code_display(rpaga.form_cd)
+,Order_Route = uar_get_code_display(rpaga.route_cd)
+,APA_Tier_5_Logic = "Tier_5     -->"
+,APA_Tier_6_Logic = "Tier_6     -->"
+
 ,NEED_RX_VERIFY = 	if(O.NEED_RX_VERIFY_IND = 0) "Does not Need Verification"
 					elseif (O.NEED_RX_VERIFY_IND = 1) "needs verification"
 					elseif (O.NEED_RX_VERIFY_IND = 2) "rejected or halted"
@@ -44,15 +66,8 @@ for iv set, this is the flag on the catalog of the matching iv set.
 				elseif(rava.ic_auto_verify_flag = 4.00) "Auto verify regardless of alerts"
 				endif
 
-;rpaga
-,Encounter_type= uar_get_code_display(rpaga.encntr_type_cd)
-, rpaga.continuous_filter_ind
-, rpaga.intermittent_filter_ind
-, rpaga.med_filter_ind
-,Order_Route = uar_get_code_display(rpaga.route_cd)
-,Order_Form =  uar_get_code_display(rpaga.form_cd)
-,Patient_Location = uar_get_code_display(rpaga.pat_locn_cd)
-,Facility = uar_get_code_display(rpaga.facility_cd)
+
+
 ;Rpaia
 ,Order_Free_text_Dose = rpaia.freetext_dose
 ,Order_Strength = rpaia.strength
@@ -66,7 +81,7 @@ text description of a specific event that occurred during the auto product assig
 , rpaa.status_message
 
 ,broken_RPAA_Status_Number =  
-if(rpaa.status_number = 0.00) "Founda  match successfully.  Matching item is recorded in set_item_id or item_id field"
+if(rpaa.status_number = 0.00) "Found a match successfully.  Matching item is recorded in set_item_id or item_id field"
 elseif(rpaa.status_number = 1.00) "fail to match because of reasons recorded in status_number and status_string fields"
 elseif(rpaa.status_number = 2.00) "Addiitonal information about a specific event with details recorded in status_number and status_string fields."
 endif
@@ -84,7 +99,9 @@ endif
 
 from
 order_product OP
+,Item_Definition ID                           ; Description
 ,orders o
+,order_catalog_synonym ocs
 , RX_AUTO_VERIFY_AUDIT RAVA
 , RX_PRODUCT_ASSIGN_GROUP_AUDIT RPAGA
 , RX_PRODUCT_ASSIGN_ITEM_AUDIT RPAIA
@@ -96,11 +113,19 @@ order_product OP
 ,dummyt d
 
 plan OP
-where op.auto_assign_flag not in (0, 1)
+		where op.auto_assign_flag not in (0, 1)
+and op.updt_dt_tm between cnvtdatetime("01-JAN-2018 0000") and cnvtdatetime("01-FEB-2018 2359")
+
+join ID
+		where op.item_id= outerjoin(ID.ITEM_ID)
+;		and ID.MED_IDENTIFIER_TYPE_CD = value(uar_get_code_by("MEANING", 11000,"DESC"))
 
 join o
 where op.order_id = o.order_id 
 and o.orig_order_dt_tm between cnvtdatetime("01-JAN-2018 0000") and cnvtdatetime("01-FEB-2018 2359")
+
+join ocs
+where ocs.synonym_id = o.synonym_id
 
 join RAVA
 where rava.order_id = outerjoin(o.order_id)
