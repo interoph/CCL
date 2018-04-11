@@ -16,22 +16,24 @@ Order_ID = o.order_id
 ,Auto_Assign_Flag=op.auto_assign_flag
 /*indicates if pharmacy verification is needed:
 */
-,APA_Tier_1_Logic = "Tier_1     -->"
+,APA_Tier_1_Logic_Product_Order_mapping = "Tier_1     -->"
 ,PowerOrder = ocs.mnemonic
-,Item_ID = op.Item_ID
 ,Product_description = id.unique_field 
 
-,APA_Tier_2_Logic = "Tier_2     -->"
+,APA_Tier_2_Logic_Product_Facility = "Tier_2     -->"
+
+,APA_Tier_3_Logic_Route_Filtertype = "Tier_3     -->"
 , rpaga.continuous_filter_ind
 , rpaga.intermittent_filter_ind
 , rpaga.med_filter_ind
 ,Order_Route = uar_get_code_display(rpaga.route_cd)
-,APA_Tier_3_Logic = "Tier_3     -->"
 ,Order_Form =  uar_get_code_display(rpaga.form_cd)
-,APA_Tier_4_Logic = "Tier_4     -->"
+,APA_Tier_4_Logic_Form_match = "Tier_4     -->"
+,Order_Form =  uar_get_code_display(rpaga.form_cd)
+,APA_Tier_5_Logic_Route_Form_Compatibility = "Tier_5     -->"
 ,Order_Form =  uar_get_code_display(rpaga.form_cd)
 ,Order_Route = uar_get_code_display(rpaga.route_cd)
-,APA_Tier_5_Logic = "Tier_5     -->"
+
 ,APA_Tier_6_Logic = "Tier_6     -->"
 
 ,NEED_RX_VERIFY = 	if(O.NEED_RX_VERIFY_IND = 0) "Does not Need Verification"
