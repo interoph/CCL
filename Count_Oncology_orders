@@ -1,0 +1,98 @@
+
+; count orders and show the order and facility where it was ordered
+
+select distinct
+
+Count = count(o.order_id) 
+,CPOE_Order = o.order_mnemonic 
+;,uar_get_code_display(o.catalog_cd) 
+,Order_type = uar_get_code_display(ocs.mnemonic_type_cd)
+,Facility_Display = uar_get_code_display(e.loc_facility_cd)
+
+from 
+orders o 
+, order_catalog_synonym ocs
+, encounter e
+, order_catalog   oc
+, alt_sel_list   ASL
+, ALT_SEL_CAT   A
+
+Plan o
+where o.orig_order_dt_tm > sysdate - 120  ;integer determines the date back in days (sysdate)
+and o.order_status_cd in (2543.00); cs 6004, Future 2546.00, Ordered 2550.00, Completed 2543.00
+and o.catalog_type_cd = 2516.00; cs 6000, pharmacy
+and o.activity_type_cd = 705.00; cs 106, pharmacy = 705.00
+and o.template_order_id = 0; child orders are > 0
+
+Join OCS
+where o.catalog_cd = ocs.catalog_cd
+and ocs.mnemonic_type_cd in(
+							;CODE_VALUE	DISPLAY
+							2580	;Brand Name
+							,2581	;Direct Care Provider
+							,614542	;C - Dispensable Drug Names
+							;2582	;Generic Name
+							,614548	;Y - Generic Products
+							,614544	;M - Generic Miscellaneous Products
+							,614543	;E - IV Fluids and Nicknames
+							;614546	;Outreach
+							;614547	;PathLink
+							,2583	;Primary
+							;2584	;Rx Mnemonic
+							;2585	;Surgery Med
+							,614549	;Z - Trade Products
+							,614545	;N - Trade Miscellaneous Products
+							)
+
+
+join e
+where e.encntr_id = o.encntr_id
+and e.loc_facility_cd in(
+						;CODE_VALUE	DISPLAY
+						21198290	;location
+						,271998575	;location
+						,271998583	;location
+						,271998479	;location
+						,276041517	;location
+						,276497813	;location
+						,344062579	;location
+						,349503863	;location
+						,499091795	;location
+						,516280427	;location
+						,416024841	;location
+						,428514323	;location
+						,275964153	;location
+						,275964173	;location
+						)
+
+Join OC where oc.catalog_cd = ocs.catalog_cd and oc.active_ind = 1 and oc.primary_mnemonic != "zz*" and oc.primary_mnemonic != "ZZ" 
+Join ASL where asl.synonym_id = ocs.synonym_id
+Join A	where asl.alt_sel_category_id = a.alt_sel_category_id	and A.AHFS_IND = 1
+	and A.Long_Description in (
+     ;ORDERCATALOG_THERAPEUTIC_CATEGORY
+	"bisphosphonates"	,"antiviral agents"	,"antineoplastics"	,"alkylating agents"
+	,"antineoplastic antibiotics"	,"antimetabolites"	,"antineoplastic hormones"	,"miscellaneous antineoplastics"
+	,"mitotic inhibitors"	,"radiopharmaceuticals"	,"biologicals"	,"colony stimulating factors"
+	,"immune globulins"	,"erythropoiesis-stimulating agents"	,"toxoids"	,"miscellaneous biologicals"
+	,"immunologic agents"	,"interferons"	,"immunosuppressive monoclonal antibodies"	,"immunosuppressive agents"
+	,"anti-CTLA-4 monoclonal antibodies"	,"other immunostimulants"	,"immunostimulants"	,"interleukin inhibitors"
+	,"interleukins"	,"CD30 monoclonal antibodies"	,"antineoplastic monoclonal antibodies"
+	,"antineoplastic interferons"	,"sclerosing agents"	,"therapeutic radiopharmaceuticals"	,"miscellaneous metabolic agents"
+	,"integrase strand transfer inhibitor"	,"antineoplastic detoxifying agents"	,"mTOR kinase inhibitors"
+	,"multikinase inhibitors"	,"BCR-ABL tyrosine kinase inhibitors"	,"CD52 monoclonal antibodies"
+	,"CD33 monoclonal antibodies"	,"CD20 monoclonal antibodies"	,"VEGF/VEGFR  inhibitors"	,"mTOR inhibitors"
+	,"EGFR inhibitors"	,"HER2 inhibitors"	,"histone deacetylase inhibitors"	,"bone resorption inhibitors"
+	,"antigonadotropic agents"	,"selective estrogen receptor modulators"	,"gonadotropin-releasing hormone antagonists"
+	,"antiandrogens"	,"aromatase inhibitors"	,"estrogen receptor antagonists"	,"progesterone receptor modulators"
+	,"trifunctional monoclonal antibodies"	,"hedgehog pathway inhibitors"	,"topical antineoplastics"
+	,"proteasome inhibitors"	,"phosphate binders"	,"NK1 receptor antagonists"	
+	,"neprilysin inhibitors"	,"CD38 monoclonal antibodies"	,"anti-PD-1 monoclonal antibodies"	,"PARP inhibitors"
+	,"antineoplastic combinations"	,"PI3K inhibitors"	,"CDK 4/6 inhibitors"	,"calcimimetics"	,"VMAT2 inhibitors"	)
+	
+
+
+group by o.catalog_type_cd, o.catalog_cd, o.order_mnemonic, ocs.mnemonic_type_cd,e.loc_facility_cd
+
+order by count(o.order_id) desc
+
+with time = 120
