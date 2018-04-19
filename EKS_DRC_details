@@ -12,7 +12,7 @@ SELECT
 , o.hna_order_mnemonic
 , o.order_mnemonic
 , o.clinical_display_line
-;, therapeutic_category = A.LONG_DESCRIPTION
+, therapeutic_category = A.LONG_DESCRIPTION
 , location = uar_get_code_display(en.loc_facility_cd)
 
 /* long_text lt */
@@ -30,8 +30,8 @@ FROM
 ;	, long_text   			lt2
 ;	, long_text 			lt3
 	, encounter 			en
-;	, alt_sel_list  	 	ASL
-;	, ALT_SEL_CAT   		A
+	, alt_sel_list  	 	ASL
+	, ALT_SEL_CAT   		A
 ;	, CLINICAL_EVENT  		C
 ;	, CE_STRING_RESULT 		CE
 ;	, order_catalog_synonym   	OCS
@@ -69,12 +69,12 @@ join o
 join en
 	where en.encntr_id = e.encntr_id
 	
-;Join ASL 
-;	where asl.synonym_id = o.synonym_id
+Join ASL 
+	where asl.synonym_id = o.synonym_id
 	
-;Join A 
-;	where a.alt_sel_category_id = asl.alt_sel_category_id 
-;	and A.AHFS_IND = 1
+Join A 
+	where a.alt_sel_category_id = asl.alt_sel_category_id 
+	and A.AHFS_IND = 1
 	
 ;Join C
 ;	where c.encntr_id = e.encntr_id
