@@ -6,7 +6,7 @@ SELECT
 , userloggedin = u.username
 , userrole = uar_get_code_display(u.position_cd)
 , patient = p.name_full_formatted
-;, admit_reason = uar_get_code_display(en.admit_type_cd)
+, admit_reason = uar_get_code_display(en.admit_type_cd)
 , birth_date1 = p.birth_dt_tm
 , override_reason = uar_get_code_display(e.override_reason_cd)
 , o.hna_order_mnemonic
@@ -18,34 +18,24 @@ SELECT
 /* long_text lt */
 , Free_Text_Override = lt.long_text
 , Discern_Alert = lt2.long_text
-;, mess_each_txt = lt3.long_text
 
 FROM
 	eks_dlg_event 			e
-;	, eks_alert_esc_hist 		eaeh
 	, person 			p
 	, prsnl 			u
 	, orders  			o
 	, long_text   			lt
 	, long_text   			lt2
-;	, long_text 			lt3
 	, encounter 			en
 	, alt_sel_list  	 	ASL
 	, ALT_SEL_CAT   		A
 ;	, CLINICAL_EVENT  		C
 ;	, CE_STRING_RESULT 		CE
-;	, order_catalog_synonym   	OCS
-;	, order_catalog   		oc
+
 
 plan e
 	Where e.dlg_name = "PHA_EKM!PHA_STP_DRC_W_HISTORY_EX"
 	and  E.DLG_DT_TM between cnvtdate(01012018) and cnvtdate(02222018)
-	
-;Join edlg
-;	where edlg.dlg_name = e.dlg_name  /*Unique identifier for an Insight.*/
-
-;join eaeh 
-;	where eaeh.encntr_id = e.encntr_id
 
 join p
 	where p.person_id = e.person_id
@@ -62,9 +52,6 @@ Join lt
 
 Join lt2
 	where lt2.long_text_id = e.alert_long_text_id
-
-;Join lt3
-;	where lt3.long_text_id = eaeh.msg_long_text_id
 
 join en
 	where en.encntr_id = e.encntr_id
@@ -84,9 +71,5 @@ Join A
 ;Join CE
 ;	where ce.event_id = c.event_id
 	
-;Join OCS
-;	where ocs.
-
-;Join OC
 
 WITH  time = 120, maxrec = 100
