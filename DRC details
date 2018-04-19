@@ -37,7 +37,7 @@ set bsize = 0
 SELECT into $outdev
 */
 
-select *
+select 
 
  rule = e.dlg_name
 , Alert_Dt_Tm = e.dlg_dt_tm
@@ -73,21 +73,21 @@ select *
 */
 
 from 
-	eks_dlg_event e
-	, eks_alert_esc_hist eaeh
-	, person p
-	, prsnl 		u
-	, orders  		o
-	, long_text   	lt
-	, long_text   	lt2
-	, long_text 	lt3
-	, encounter en
-	, alt_sel_list   ASL
-	, ALT_SEL_CAT   A
-;	, CLINICAL_EVENT  C
-;	, CE_STRING_RESULT CE
-;	, order_catalog_synonym   OCS
-;	, order_catalog   oc
+	eks_dlg_event 			e
+	, eks_alert_esc_hist 		eaeh
+	, person 			p
+	, prsnl 			u
+	, orders  			o
+	, long_text   			lt
+	, long_text   			lt2
+	, long_text 			lt3
+	, encounter 			en
+	, alt_sel_list  	 	ASL
+	, ALT_SEL_CAT   		A
+;	, CLINICAL_EVENT  		C
+;	, CE_STRING_RESULT 		CE
+;	, order_catalog_synonym   	OCS
+;	, order_catalog   		oc
 		
 plan e
 ;	where e.DLG_NAME  = "PHA_EKM!PHA_DRC_PROD_PC_ALL"
@@ -108,8 +108,8 @@ join p
 join u
 	where u.person_id = e.DLG_PRSNL_ID
 
-;join o
-;	where o.order_id = e.trigger_order_id
+join o
+	where o.order_id = e.trigger_order_id
 	
 Join lt 
 	where lt.long_text_id = e.long_text_id
@@ -129,15 +129,15 @@ Join ASL
 	
 Join A 
 	where a.alt_sel_category_id = asl.alt_sel_category_id 
-	;and A.AHFS_IND = 1
+	and A.AHFS_IND = 1
 	
-;Join C
-;	where c.encntr_id = e.encntr_id
+Join C
+	where c.encntr_id = e.encntr_id
 ;	and c.order_id = e.trigger_entity_id
 ;	and c.catalog_cd = "xxxxx.00"
 	
-;Join CE
-;	where ce.event_id = c.event_id
+Join CE
+	where ce.event_id = c.event_id
 	
 ;Join OCS
 ;	where ocs.
@@ -145,7 +145,7 @@ Join A
 ;Join OC
 	
 with time = 300
-
+/*
 HEAD REPORT
   row + 0
 DETAIL
@@ -156,3 +156,4 @@ COL 1 string
 
 FOOT REPORT
 ROW  + 0
+*/
