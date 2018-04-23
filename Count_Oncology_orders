@@ -1,13 +1,11 @@
 
-; count orders and show the order and facility where it was ordered
-
 select distinct
 
 Count = count(o.order_id) 
-,CPOE_Order = o.order_mnemonic 
-;,uar_get_code_display(o.catalog_cd) 
+,CPOE_Order = o.ordered_as_mnemonic
+;,Power_Order = ocs.mnemonic  
 ,Order_type = uar_get_code_display(ocs.mnemonic_type_cd)
-,Facility_Display = uar_get_code_display(e.loc_facility_cd)
+;,Facility_Display = uar_get_code_display(e.loc_facility_cd)
 
 from 
 orders o 
@@ -26,6 +24,7 @@ and o.template_order_id = 0; child orders are > 0
 
 Join OCS
 where o.catalog_cd = ocs.catalog_cd
+and ocs.synonym_id = o.synonym_id
 and ocs.mnemonic_type_cd in(
 							;CODE_VALUE	DISPLAY
 							2580	;Brand Name
@@ -91,8 +90,8 @@ Join A	where asl.alt_sel_category_id = a.alt_sel_category_id	and A.AHFS_IND = 1
 	
 
 
-group by o.catalog_type_cd, o.catalog_cd, o.order_mnemonic, ocs.mnemonic_type_cd,e.loc_facility_cd
+group by o.ordered_as_mnemonic, ocs.mnemonic , ocs.mnemonic_type_cd
 
 order by count(o.order_id) desc
 
-with time = 120
+with time = 120, format(date, ";;q")
