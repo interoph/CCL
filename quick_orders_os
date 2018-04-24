@@ -1,0 +1,68 @@
+SELECT
+;AC.ALT_SEL_CATEGORY_ID,
+FOLDER_NAME = AC.LONG_DESCRIPTION
+,FOLDER_DISPLAY = AC.SHORT_DESCRIPTION
+,FOLDER_SEQUENCE = AL.SEQUENCE
+;,AL.CHILD_ALT_SEL_CAT_ID
+,SUB_FOLDER_NAME = (if (AC2.LONG_DESCRIPTION != "*OB Outpatient*") ac2.long_description 
+					else " " 
+					endif)
+,SUB_FOLDER_DISPLAY = (if (AC2.LONG_DESCRIPTION != "*OB Outpatient*") ac2.long_description 
+						else " " endif)
+,SUB_FOLDER_SEQUENCE = AL.SEQUENCE
+;,AL.SYNONYM_ID
+,ORDER_SYNONYM = OCS.MNEMONIC
+;,AL.ORDER_SENTENCE_ID
+,ORDER_SENTENCE = OS.ORDER_SENTENCE_DISPLAY_LINE
+;,AL.PATHWAY_CATALOG_ID
+;,ORDER_COMMENT =L.LONG_TEXT
+,POWERPLAN = PC.DISPLAY_DESCRIPTION
+;,AL.PW_CAT_SYNONYM_ID
+;,POWERPLAN_SYNONYM_USED = PCS.SYNONYM_NAME
+
+FROM 
+ALT_SEL_CAT AC
+,ALT_SEL_LIST AL
+,ALT_SEL_CAT AC2
+,ORDER_CATALOG_SYNONYM OCS
+,ORDER_SENTENCE OS
+,PATHWAY_CATALOG PC
+,PW_CAT_SYNONYM PCS
+;,LONG_TEXT L
+
+PLAN AC
+WHERE AC.OWNER_ID = 0 ;filters out favorite folders
+AND AC.AHFS_IND IN (0,NULL) ;filters out therapeutic class categories
+AND AC.ADHOC_IND IN (0,NULL) ;filters out ad hoc charting folders
+
+JOIN AL 
+WHERE AL.ALT_SEL_CATEGORY_ID = AC.ALT_SEL_CATEGORY_ID
+;AND AC.LONG_DESCRIPTION = "QOC*PMR*" ;update to "QOC*" for MT document
+;AND AC.LONG_DESCRIPTION IN ("QOC*ID*2") ;use if need to pull multiple unique specialties
+
+JOIN AC2
+WHERE AC2.ALT_SEL_CATEGORY_ID = AL.CHILD_ALT_SEL_CAT_ID
+
+JOIN OCS
+WHERE OCS.SYNONYM_ID = AL.SYNONYM_ID
+and ocs.active_ind = 1
+
+JOIN OS
+where os.order_sentence_id = ocs.order_sentence_id
+
+join PC
+where pc.*
+
+join pcs
+where pcs.pw_cat_synonym_id = pc.pathway_catalog_id
+
+join L
+where 
+
+;join pcs
+
+;join L
+
+
+
+with time = 60, maxrec = 100
