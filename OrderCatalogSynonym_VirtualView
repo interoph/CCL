@@ -14,7 +14,6 @@ FROM
 plan oc 
 	where oc.active_ind = 1
 	and oc.catalog_type_cd = 2516
-	and oc.active_ind = 1
 	and oc.primary_mnemonic != "ZZ*"
 
 join ocs 
