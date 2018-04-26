@@ -1,24 +1,12 @@
+;-------------------Folders Order Report 1--------
 SELECT
-;AC.ALT_SEL_CATEGORY_ID,
+
 FOLDER_NAME = AC.LONG_DESCRIPTION
 ,FOLDER_DISPLAY = AC.SHORT_DESCRIPTION
-,FOLDER_SEQUENCE = AL.SEQUENCE
-;,AL.CHILD_ALT_SEL_CAT_ID
-,SUB_FOLDER_NAME = (if (AC2.LONG_DESCRIPTION != "*OB Outpatient*") ac2.long_description 
-					else " " 
-					endif)
-,SUB_FOLDER_DISPLAY = (if (AC2.LONG_DESCRIPTION != "*OB Outpatient*") ac2.long_description 
-						else " " endif)
-,SUB_FOLDER_SEQUENCE = AL.SEQUENCE
-;,AL.SYNONYM_ID
 ,ORDER_SYNONYM = OCS.MNEMONIC
-;,AL.ORDER_SENTENCE_ID
 ,ORDER_SENTENCE = OS.ORDER_SENTENCE_DISPLAY_LINE
-;,AL.PATHWAY_CATALOG_ID
 ,ORDER_COMMENT =L.LONG_TEXT
-,POWERPLAN = PC.DISPLAY_DESCRIPTION
-;,AL.PW_CAT_SYNONYM_ID
-,POWERPLAN_SYNONYM_USED = PCS.SYNONYM_NAME
+
 
 FROM 
 ALT_SEL_CAT AC
@@ -37,8 +25,6 @@ AND AC.ADHOC_IND IN (0,NULL) ;filters out ad hoc charting folders
 
 JOIN AL 
 WHERE AL.ALT_SEL_CATEGORY_ID = AC.ALT_SEL_CATEGORY_ID
-;AND AC.LONG_DESCRIPTION = "QOC*PMR*" ;update to "QOC*" for MT document
-;AND AC.LONG_DESCRIPTION IN ("QOC*ID*2") ;use if need to pull multiple unique specialties
 
 JOIN AC2
 WHERE AC2.ALT_SEL_CATEGORY_ID = AL.CHILD_ALT_SEL_CAT_ID
@@ -46,86 +32,50 @@ WHERE AC2.ALT_SEL_CATEGORY_ID = AL.CHILD_ALT_SEL_CAT_ID
 JOIN OCS
 WHERE OCS.SYNONYM_ID = AL.SYNONYM_ID
 and ocs.active_ind = 1
-and ocs.catalog_type_cd = 2516
+and ocs.catalog_type_cd = 2516 ; pharmacy
 
-JOIN OS
-WHERE OS.ORDER_SENTENCE_ID = AL.ORDER_SENTENCE_ID
+JOIN OS WHERE OS.ORDER_SENTENCE_ID = AL.ORDER_SENTENCE_ID
 
-JOIN L
-WHERE OS.ORD_COMMENT_LONG_TEXT_ID = L.LONG_TEXT_ID
+JOIN L WHERE OS.ORD_COMMENT_LONG_TEXT_ID = L.LONG_TEXT_ID
 
-JOIN PC
-WHERE PC.PATHWAY_CATALOG_ID = AL.PATHWAY_CATALOG_ID
+JOIN PC WHERE PC.PATHWAY_CATALOG_ID = AL.PATHWAY_CATALOG_ID
 
-JOIN PCS
-WHERE PCS.PW_CAT_SYNONYM_ID = AL.PW_CAT_SYNONYM_ID
+JOIN PCS WHERE PCS.PW_CAT_SYNONYM_ID = AL.PW_CAT_SYNONYM_ID
 
-ORDER BY
-AC.LONG_DESCRIPTION, AC.SHORT_DESCRIPTION, AL.SEQUENCE
+ORDER BY AC.LONG_DESCRIPTION, AC.SHORT_DESCRIPTION, AL.SEQUENCE
 
 with time = 60
+
+;--------------------Folders Order Report 2 --------------------------
 /*
 select distinct
-
  Folder = ac.long_description
-
   , ocs.mnemonic
-
   , syn_type = uar_get_code_display(ocs.mnemonic_type_cd)
-
   , os.order_sentence_display_line
 
 from
-
   alt_sel_cat ac
-
   , alt_sel_list al
-
   , order_catalog_synonym ocs
-
   , order_entry_format oef
-
   , order_sentence os
-
   , order_sentence_detail osd
 
-plan ocs
+plan ocs where ocs.active_ind = 1 and ocs.catalog_type_cd = 2516 ; pharmacy
 
-  where ocs.active_ind = 1
+join oef where ocs.oe_format_id = oef.oe_format_id 
 
-  and ocs.catalog_type_cd = 2516 ; pharmacy
+join al where ocs.synonym_id = al.synonym_id 
 
-join oef
+join ac where al.alt_sel_category_id = ac.alt_sel_category_id 
 
-  where ocs.oe_format_id = oef.oe_format_id
+join os  where al.order_sentence_id = os.order_sentence_id
 
- 
+join osd where al.order_sentence_id = osd.order_sentence_id
 
- 
-
-join al
-
-  where ocs.synonym_id = al.synonym_id
-
- 
-
-join ac
-
-  where al.alt_sel_category_id = ac.alt_sel_category_id
-
- 
-
-join os
-
-  where al.order_sentence_id = os.order_sentence_id
-
-join osd
-
-  where al.order_sentence_id = osd.order_sentence_id
-
-order by
-
-  ac.long_description
+order by  ac.long_description
 
 with time = 30
 */
+;-------------------------------------------
