@@ -1,0 +1,73 @@
+select
+  drc.dose_range_check_name,
+  premise_type_disp = dm.description,
+  relational_operator_disp = dm1.description,
+  drc_premise_unit_display = uar_get_code_display(dp2.value_unit_cd),
+  dp2.value1,
+  dp2.value2,
+  dp2.value1_string,
+  dp2.value2_string,
+  premise_entity_disp = cv.display,
+  drc_dose_range_type_disp = dm3.description,
+  ddr.dose_days,
+  drc_dose_range_unit_display = uar_get_code_display(ddr.value_unit_cd),
+  ddr.max_value,
+  ddr.min_value,
+  ddr.max_variance_pct,
+  ddr.min_variance_pct,
+  ddr.custom_ind
+      
+from
+  dose_range_check drc,
+  drc_premise dp,
+  drc_premise dp2,
+  drc_premise_list dpl,
+  drc_dose_range ddr, 
+  dm_flags dm,
+  dm_flags dm1,
+  dm_flags dm2,
+  dm_flags dm3,
+  code_value cv
+
+plan drc where drc.active_ind = 1
+    
+join dp  where dp.dose_range_check_id = drc.dose_range_check_id 
+           and    dp.parent_premise_id = 0
+           and    dp.active_ind = 1
+           
+join dp2 where dp2.parent_premise_id = dp.drc_premise_id
+           and    dp2.active_ind = 1
+           
+join dpl where dpl.drc_premise_id = outerjoin(dp2.drc_premise_id) 
+            and dpl.active_ind = outerjoin(1)
+
+join ddr where ddr.drc_premise_id = outerjoin(dp.drc_premise_id) 
+            and ddr.active_ind = outerjoin(1)               
+            
+join dm  where DM.FLAG_VALUE = outerjoin(dp2.premise_type_flag)
+           and DM.TABLE_NAME = outerjoin("DRC_PREMISE")
+           and dm.COLUMN_NAME = outerjoin("PREMISE_TYPE_FLAG")
+           
+join dm1  where dm1.flag_value = outerjoin(dp2.relational_operator_flag)
+           and dm1.table_name = outerjoin("DRC_PREMISE")
+           and dm1.column_name = outerjoin("RELATIONAL_OPERATOR_FLAG")     
+           
+join dm2  where dm2.flag_value = outerjoin(drc.build_flag)
+           and dm2.table_name = outerjoin("DOSE_RANGE_CHECK")
+           and dm2.column_name = outerjoin("BUILD_FLAG")
+                      
+join dm3  where dm3.flag_value = outerjoin(ddr.type_flag)
+           and dm3.table_name = outerjoin("DRC_DOSE_RANGE")
+           and dm3.column_name = outerjoin("TYPE_FLAG")
+            
+join cv   where cv.code_value = outerjoin(dpl.parent_entity_id)
+            ;and "CODE_VALUE" = outerjoin(dpl.parent_entity_name)
+            and cv.code_set = outerjoin(4001)
+
+order 
+      drc.dose_range_check_name,
+      dp.drc_premise_id,
+      dp2.drc_premise_id,
+      dpl.parent_entity_id,
+      ddr.type_flag
+with time = 120
