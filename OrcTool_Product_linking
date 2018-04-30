@@ -2,38 +2,37 @@
 
 
 select
- 
-;  primary_mnemonic=oc.primary_mnemonic
-   OCS_descr = substring(1,80,ocs.mnemonic)
-  ,mnemonic_type = uar_get_code_display (ocs.mnemonic_type_cd)
-  ,label_desc = substring (1,80, mi.value)
-, ocs_last_update_dt_tm = ocs.updt_dt_tm "@SHORTDATETIME"
-;, oc_last_update_dt_tm = oc.updt_dt_tm "@SHORTDATETIME"
-;, sir_last_update_dt_tm = sir.updt_dt_tm "@SHORTDATETIME"
+ 
+primary_mnemonic=oc.primary_mnemonic
+,OCS_descr = substring(1,80,ocs.mnemonic)
+,mnemonic_type = uar_get_code_display (ocs.mnemonic_type_cd)
+,label_desc = substring (1,80, mi.value)
+, sir_last_update_dt_tm = sir.updt_dt_tm "@SHORTDATETIME"
 , last_update_name_last = p.name_last
 , last_update_name_first = p.name_first
 , last_update_user_position = uar_get_code_display(p.position_cd)
 
 
-from 
-order_catalog_synonym ocs 
+
+from 
+order_catalog_synonym ocs 
 ,order_catalog oc
-,prsnl p
 ,synonym_item_r sir
+,prsnl p
 ,med_identifier mi
 
 plan ocs
 where ocs.mnemonic_type_cd in (
 	;CODE_VALUE	DISPLAY
-       2580.00	;Brand Name	
-       ,2581.00	;Direct Care Provider	
+     2580.00	;Brand Name	
+     ,2581.00	;Direct Care Provider	
      ,614542.00	;C - Dispensable Drug Names	
-      ,2582.00	;Generic Name	
+     ,2582.00	;Generic Name	
      ,614548.00	;Y - Generic Products	
      ,614544.00	;M - Generic Miscellaneous 
      ,614543.00	;E - IV Fluids and Nicknames	
-       ,2583.00	;Primary	
-       ,2584.00	;Rx Mnemonic	
+     ,2583.00	;Primary	
+     ,2584.00	;Rx Mnemonic	
      ,614549.00	;Z - Trade Products	
      ,614545.00	;N - Trade Miscellaneous Products	
 						) 
@@ -44,14 +43,14 @@ where ocs.mnemonic_type_cd in (
 join oc 
 where ocs.catalog_cd=oc.catalog_cd
 ;and oc.updt_id = ocs.updt_id
-	
-join p
-where ocs.updt_id = p.person_id
 
-  
 join sir 
 where ocs.synonym_id=sir.synonym_id
 ;and sir.updt_id = ocs.updt_id
+
+join p
+;where ocs.updt_id = p.person_id
+where p.person_id = sir.updt_id
 
 join mi 
 where sir.item_id=mi.item_id
@@ -63,7 +62,7 @@ and mi.med_product_id =0
 ;and mi.pharmacy_type_cd = 0; inpatient medication
 
 order by ocs.mnemonic,  mi.value
- 
+ 
 with maxrec = 1000, time = 60
 
 go
