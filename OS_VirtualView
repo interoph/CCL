@@ -23,7 +23,7 @@ ocs.mnemonic
 from order_sentence os
 , order_catalog_synonym ocs
 , ocs_facility_r ocsfr
-, order_entry_format oef
+,filter_entity_reltn fer
 , prsnl p
 
 plan os ;where os.usage_flag < 2 ; 2 = prescription
@@ -37,9 +37,11 @@ join ocs where ocs.synonym_id = os.parent_entity_id
 	and not ocs.mnemonic_key_cap 	= "ZZ*"
 	and ocs.catalog_cd = 2749283.00 ; ampicillin and ocs.active_ind = 1
 
-join oef where oef.oe_format_id = ocs.oe_format_id
 
 join ocsfr where ocsfr.synonym_id = ocs.synonym_id
+
+join fer
+	where fer.parent_entity_id = os.order_sentence_id
 
 join p
   where os.updt_id = p.person_id
