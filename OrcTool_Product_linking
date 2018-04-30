@@ -46,7 +46,7 @@ where ocs.catalog_cd=oc.catalog_cd
 
 join sir 
 where ocs.synonym_id=sir.synonym_id
-;and sir.updt_id = ocs.updt_id
+
 
 join p
 ;where ocs.updt_id = p.person_id
