@@ -1,0 +1,16 @@
+/* Identify Obsolete NDC's and drill down into the formulary */
+; first steps
+
+/*mltm_ndc_core_description*/
+
+ Select 
+ 
+NDC = mdcd.ndc_formatted
+, mdcd.obsolete_date
+, Obsolete = if(curdate > mdcd.obsolete_date) "no"
+			 else "yes"
+			 endif
+ 
+from mltm_ndc_core_description  mdcd
+
+with time = 60
