@@ -29,8 +29,37 @@ from
   dm_flags dm3,
   code_value cv
 
-plan drc where drc.active_ind = 1
-    
+plan drc 
+where drc.active_ind = 1
+and drc.dose_range_check_name in(
+"avelumab"
+,"methotrexate"
+,"niraparib"
+,"vincristine"
+,"carmustine"
+,"doxorubicin"
+,"gemtuzumab"
+,"bcg"
+,"doxorubicin-liposomal"
+,"midostaurin"
+,"olaparib"
+,"cisplatin"
+,"idarubicin"
+,"durvalumab"
+,"inotuzumab ozagamicin"
+,"olaratumab"
+,"xytarabine-Daunorubicin LIPOSOMAL"
+,"bleomycin"
+,"mitoxantrone"
+,"brigatinib"
+,"epirubicin"
+,"neratinib"
+,"ribociclib"
+,"daunorubicin"
+,"lEVOleucovorin"
+,"hyaluronidase-rituximab"
+)
+  
 join dp  where dp.dose_range_check_id = drc.dose_range_check_id 
            and    dp.parent_premise_id = 0
            and    dp.active_ind = 1
