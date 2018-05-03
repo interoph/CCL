@@ -1,0 +1,6 @@
+/*initial query to review multum allergy, drug interaction, duplicate customizations */
+select * from dcp_entity_reltn d
+
+where d.ENTITY_RELTN_MEAN IN("DRUG/DRUG", "DRUG/ALLERGY",
+
+"DRUG/FOOD", "TDC/SUPP", "DRUG/TEXT", "TDC/CAT/SUPP") go
