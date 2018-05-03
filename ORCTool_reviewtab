@@ -1,0 +1,46 @@
+/*ORCTool, order review tab for all order actions. */
+select 
+
+   oc.catalog_cd
+   ,catalog_type = uar_get_code_display(oc.catalog_type_cd)
+   ,activity_type = uar_get_code_display(oc.activity_type_cd)
+   ,oc.description
+   ,oc.primary_mnemonic
+   ,order_action = uar_get_code_display(ocr.action_type_cd)
+    ,nurse_review = OCR.nurse_review_flag
+   ,nurse_review = if(ocr.nurse_review_flag = 0 ) "None"
+   					elseif(ocr.nurse_review_flag = 1 ) "Order_Location"
+   					elseif(ocr.nurse_review_flag = 2 ) "Patient Location"
+   					elseif(ocr.nurse_review_flag = 3 ) "Order Detail Provider"
+   					elseif(ocr.nurse_review_flag = 4 ) "Order Detail Location"
+   					endif
+   					
+   ,phys_cosign = if(ocr.doctor_cosign_flag = 0) "None"
+            elseif(ocr.doctor_cosign_flag = 1) "Ordering Physician"
+            elseif(ocr.doctor_cosign_flag = 2) "Attending Physician"
+            elseif(ocr.doctor_cosign_flag = 3) "Order Detail Physician"
+            endif
+            
+   ,pharm_verify = if(ocr.rx_verify_flag = 0) "Not Required"
+   				elseif(ocr.rx_verify_flag = 2)  "Required"
+   				endif
+   
+
+from
+   order_catalog oc,
+   order_catalog_review ocr
+
+plan ocr
+   where ocr.action_type_cd = value(UAR_GET_CODE_BY("MEANING", 6003, "MODIFY"))
+
+join oc
+   where oc.catalog_cd = ocr.catalog_cd
+   and oc.orderable_type_flag in (0,1)
+   and oc.active_ind = 1
+   and oc.catalog_type_cd = value(UAR_GET_CODE_BY("MEANING", 6000, "PHARMACY"))
+
+;order by  catalog_type, activity_type, oc.primary_mnemonic
+
+
+with time = 120
+Go
