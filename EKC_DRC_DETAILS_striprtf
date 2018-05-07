@@ -1,10 +1,9 @@
 DROP PROGRAM DRC_DETAILS_Summary GO
 CREATE PROGRAM DRC_DETAILS_Summary
 
-
-declare no_rtfblob= c2500
-declare lout = i4
-declare stat = i4
+set BlobOut= fillstring( 32768, ' ' )
+set BlobNoRTF =  fillstring( 32768, ' ' )
+set bsize = 0
 
 SELECT
 
@@ -26,7 +25,7 @@ SELECT
 
 /* long_text lt */
 , Free_Text_Override = lt.long_text
-, Discern_Alert = lt2.long_text
+, Discern_Alert = trim(lt2.long_text)
 
 FROM
 	eks_dlg_event 			e
@@ -39,6 +38,7 @@ FROM
 	, encntr_alias 			ea
 	, alt_sel_list  	 	ASL
 	, ALT_SEL_CAT   		A
+	, dummyt 				d
 ;	, CLINICAL_EVENT  		C
 ;	, CE_STRING_RESULT 		CE
 
@@ -77,6 +77,9 @@ join ea
        where o.encntr_id =ea.encntr_id
        and EA.ENCNTR_ALIAS_TYPE_CD =1077
 ;       and ea.alias = "###FIN#####" ; <--fin number
+
+join d
+		where lt2.long_text_id = 
 	
 ;Join C
 ;	where c.encntr_id = e.encntr_id
@@ -86,15 +89,17 @@ join ea
 ;Join CE
 ;	where ce.event_id = c.event_id
 	
-Detail
 
-uarstat = assign(stat,uar_rtf2(lt2.long_text, textlen(lt2.long_text),
+DETAIL
+     stat = uar_rtf(l.long_text ,size(l.long_text ),blobnortf,size(blobnortf),bsize,0)
+     string = TRIM(blobnortf)
 
-no_rtfblob, size(no_rtfblob), lout, 1))
+COL 1 string
 
-, Reference_Text = replace(replace(trim(substring(1,lout,no_rtfblob),3),char(10),""),char(13),"")
+FOOT REPORT
 
+ROW  + 0	
+	
 WITH    time = 120,
-	MAXREC = 20, 
+		MAXREC = 20, 
 end
-go
