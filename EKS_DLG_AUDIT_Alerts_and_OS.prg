@@ -38,8 +38,8 @@ FROM
 	, long_text   lt2
 	, eks_dlg   edlg
 	, eks_alert_esc_hist eaeh
-	;, person   p
-	;, prsnl   user
+	, person   p
+	, prsnl   user
 
 plan e
 	Where E.DLG_DT_TM between cnvtdate(12012017) and cnvtdate(12072017)
@@ -58,11 +58,11 @@ Join edlg
 join eaeh
 	where eaeh.alert_id = e.alert_long_text_id
 
-;join p
-;	where p.person_id = e.person_id
-;	and p.active_ind = 1
+join p
+	where p.person_id = e.person_id
+	and p.active_ind = 1
 
-;join user
-;	where user.person_id = e.dlg_prsnl_idwith ,
+join user
+	where user.person_id = e.dlg_prsnl_id
 
 WITH  time = 120
