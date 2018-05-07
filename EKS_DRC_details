@@ -50,7 +50,7 @@ join o
 	
 Join lt 
 	where lt.long_text_id = e.long_text_id
-	and lt.active_ind = 1
+;	and lt.active_ind = 1
 
 Join lt2
 	where lt2.long_text_id = e.alert_long_text_id
@@ -68,7 +68,7 @@ Join A
 join ea
        where o.encntr_id =ea.encntr_id
        and EA.ENCNTR_ALIAS_TYPE_CD =1077
-       and ea.alias = "###FIN#####" ; <--fin number
+;       and ea.alias = "###FIN#####" ; <--fin number
 	
 ;Join C
 ;	where c.encntr_id = e.encntr_id
@@ -79,4 +79,4 @@ join ea
 ;	where ce.event_id = c.event_id
 	
 
-WITH  time = 120, maxrec = 100
+WITH  time = 120, maxrec = 10
