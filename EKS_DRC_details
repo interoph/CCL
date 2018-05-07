@@ -27,6 +27,7 @@ FROM
 	, long_text   			lt
 	, long_text   			lt2
 	, encounter 			en
+	, encntr_alias 			ea
 	, alt_sel_list  	 	ASL
 	, ALT_SEL_CAT   		A
 ;	, CLINICAL_EVENT  		C
@@ -62,6 +63,11 @@ Join ASL
 Join A 
 	where a.alt_sel_category_id = asl.alt_sel_category_id 
 	and A.AHFS_IND = 1
+	
+join ea
+       where o.encntr_id =ea.encntr_id
+       and EA.ENCNTR_ALIAS_TYPE_CD =1077
+       and ea.alias = "###FIN#####" ; <--fin number
 	
 ;Join C
 ;	where c.encntr_id = e.encntr_id
