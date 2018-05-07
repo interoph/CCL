@@ -88,13 +88,13 @@ join ea
 	
 Detail
 
-uarstat = assign(stat,uar_rtf2(LB.LONG_BLOB, textlen(LB.LONG_BLOB),
+uarstat = assign(stat,uar_rtf2(lt2.long_text, textlen(lt2.long_text),
 
 no_rtfblob, size(no_rtfblob), lout, 1))
 
 , Reference_Text = replace(replace(trim(substring(1,lout,no_rtfblob),3),char(10),""),char(13),"")
 
 WITH    time = 120,
-		MAXREC = 20, 
+	MAXREC = 20, 
 end
 go
