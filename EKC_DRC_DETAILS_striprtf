@@ -38,7 +38,6 @@ FROM
 	, encntr_alias 			ea
 	, alt_sel_list  	 	ASL
 	, ALT_SEL_CAT   		A
-	, dummyt 				d
 ;	, CLINICAL_EVENT  		C
 ;	, CE_STRING_RESULT 		CE
 
@@ -77,9 +76,6 @@ join ea
        where o.encntr_id =ea.encntr_id
        and EA.ENCNTR_ALIAS_TYPE_CD =1077
 ;       and ea.alias = "###FIN#####" ; <--fin number
-
-join d
-		where lt2.long_text_id = 
 	
 ;Join C
 ;	where c.encntr_id = e.encntr_id
@@ -101,5 +97,4 @@ FOOT REPORT
 ROW  + 0	
 	
 WITH    time = 120,
-		MAXREC = 20, 
-end
+		MAXREC = 20
