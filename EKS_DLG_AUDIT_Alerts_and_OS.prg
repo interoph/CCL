@@ -42,7 +42,9 @@ FROM
 	;, prsnl   user
 
 plan e
-
+	Where E.DLG_DT_TM between cnvtdate(12012017) and cnvtdate(12072017)
+        and e.dlg_name = "MUL_MED!DRUGDUP"
+	
 Join lt 
 	where lt.long_text_id = e.long_text_id
 	and lt.active_ind = 1
