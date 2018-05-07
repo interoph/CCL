@@ -6,6 +6,7 @@ SELECT
 , userloggedin = u.username
 , userrole = uar_get_code_display(u.position_cd)
 , patient = p.name_full_formatted
+, FIN = ea.alias
 , admit_reason = uar_get_code_display(en.admit_type_cd)
 , birth_date1 = p.birth_dt_tm
 , override_reason = uar_get_code_display(e.override_reason_cd)
