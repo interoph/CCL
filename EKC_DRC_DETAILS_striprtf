@@ -1,11 +1,17 @@
 DROP PROGRAM DRC_DETAILS_Summary GO
 CREATE PROGRAM DRC_DETAILS_Summary
 
+prompt 
+	"Output to File/Printer/MINE" = "CURDATE"   ;* Enter or select the printer or file name to send this report to. 
+
+with OUTDEV
+
+
 set BlobOut= fillstring( 32768, ' ' )
 set BlobNoRTF =  fillstring( 32768, ' ' )
 set bsize = 0
 
-SELECT
+SELECT into $OUTDEV
 
  rule = e.dlg_name
 , Alert_Dt_Tm = e.dlg_dt_tm
@@ -97,4 +103,4 @@ FOOT REPORT
 ROW  + 0	
 	
 WITH    time = 120,
-		MAXREC = 20
+		MAXREC = 20 
