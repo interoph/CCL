@@ -1,0 +1,60 @@
+select
+
+ocs.mnemonic
+, synonym_type = uar_get_code_display(ocs.mnemonic_type_cd)
+, Orders_View = 	if(ocsfr.facility_cd = 0) "ALL"
+					else uar_get_code_display(ocsfr.facility_cd)
+					endif
+
+, os.order_sentence_display_line
+, SENTENCE_VIEW = if(fer.filter_entity1_id = 0) "ALL" 
+				elseif (fer.filter_entity1_id >0) uar_get_code_display(fer.filter_entity1_id)	
+				else "NULL"
+				endif
+
+,OS_Encounter_Group = if(os.order_encntr_group_cd = 0) "ALL"
+						elseif(os.order_encntr_group_cd = 676841.00) "Acute Care"
+						elseif(os.order_encntr_group_cd = 676842.00) "Ambulatory Care"
+						elseif(os.order_encntr_group_cd = 4372507.00) "Clinic"
+						elseif(os.order_encntr_group_cd = 676843.00) "Emergency Department"
+						elseif(os.order_encntr_group_cd = 676839.00) "Long term Care"
+						elseif(os.order_encntr_group_cd = 676840.00) "Oncology"
+						endif
+ 
+, last_update_dt_tm = os.updt_dt_tm "@SHORTDATETIME"
+, last_update_name_last = p.name_last
+, last_update_name_first = p.name_first
+, last_update_user_position = uar_get_code_display(p.position_cd)
+
+from order_sentence os
+, order_catalog_synonym ocs
+, ocs_facility_r ocsfr
+,filter_entity_reltn fer
+, prsnl p
+
+plan os ;where os.usage_flag < 2 ; 2 = prescription
+  where os.parent_entity2_name not in ("ALT_SEL_CAT","RX_THERAP_SBSTTN","PATHWAY_COMP","PATHWAY_RULE") ; <--not favorites, PWP,   Careset, rules, etc.. 
+  and os.parent_entity_name not in ("ALT_SEL_CAT","RX_THERAP_SBSTTN","PATHWAY_COMP","PATHWAY_RULE")  
+
+join ocs where ocs.synonym_id = os.parent_entity_id
+	and ocs.catalog_type_cd 		= 2516
+	and ocs.active_ind 				= 1
+	and ocs.hide_flag 				= 0
+	and not ocs.mnemonic_key_cap 	= "ZZ*"
+;	and ocs.catalog_cd = 2749283.00 ; ampicillin and ocs.active_ind = 1
+
+
+join ocsfr where ocsfr.synonym_id = ocs.synonym_id
+
+
+join fer
+	where fer.parent_entity_id = os.order_sentence_id
+	and (fer.filter_entity1_id = ocsfr.facility_cd
+		or fer.filter_entity1_id = 0)
+
+join p
+  where os.updt_id = p.person_id
+  
+order ocs.mnemonic, ocs.mnemonic_type_cd
+
+with time = 60
