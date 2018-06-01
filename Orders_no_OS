@@ -1,0 +1,40 @@
+select
+
+ocs.mnemonic
+,Is_the_order_hidden = if(ocs.hide_flag = 1) "Hidden"
+						elseif(ocs.hide_flag = 0 )"Not Hidden"
+						else "null"
+						endif
+						
+, synonym_type = uar_get_code_display(ocs.mnemonic_type_cd)
+, Orders_View = 	if(ocsfr.facility_cd = 0) "ALL"
+					else uar_get_code_display(ocsfr.facility_cd)
+					endif
+
+, last_update_dt_tm = ocs.updt_dt_tm "@SHORTDATETIME"
+, last_update_name_last = p.name_last
+, last_update_name_first = p.name_first
+, last_update_user_position = uar_get_code_display(p.position_cd)
+
+from 
+order_catalog_synonym ocs
+, ocs_facility_r ocsfr
+, prsnl p
+
+plan ocs
+where ocs.active_ind = 1
+	and ocs.catalog_type_cd 		= 2516
+;	and ocs.hide_flag
+	and not ocs.mnemonic_key_cap 	= "ZZ*"
+	and ocs.synonym_id not in ( select os.parent_entity_id
+		  					from order_sentence os )
+		  					
+join ocsfr 
+	where ocsfr.synonym_id = ocs.synonym_id
+	
+join p
+  where ocs.updt_id = p.person_id
+  
+order ocs.mnemonic, ocs.mnemonic_type_cd
+
+with time = 60
