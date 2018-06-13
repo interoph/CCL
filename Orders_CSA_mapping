@@ -3,81 +3,97 @@ oc.primary_mnemonic
 ,oc.cki
 ,ocs.mnemonic
 ,ocs.cki
-
-
+, order_type = uar_get_code_meaning(ocs.mnemonic_type_cd)
 
 from 
 
 order_catalog oc
 ,order_catalog_synonym ocs
 
-
-
 plan oc
 where oc.active_ind = 1
-
-
+and oc.primary_mnemonic in (
+							"ALfentanil"
+							,"buprenorphine"
+							,"butalbital"         ;  <--primary  it's wierd... no products or mnemonics 
+							,"butalbital/ASA/caffeine"
+							,"Butorphanol"
+							,"codeine"
+							,"acetaminophen-codeine"
+							,"fentanyl"
+							,"HYDROcodone"
+							,"hydrocodone/brompheniramine/PE/guaifenesin"
+							,"HYDROcodone"
+							,"HYDROcodone-phenyltoloxamine"
+							)
 join ocs
 where ocs.catalog_cd = oc.catalog_cd
 and ocs.active_ind = 1
+/*
 and ocs.mnemonic in (
+						;"ALfentanil"  ; <-- primary
+						;,"Alfenta"      ;<-- not in build domain
 						;----------------
-						"Alfentanil"    ; <--primary?
-						,"Alfenta"      ;
+						;,"Anileridine"  ; <-- as per wikipedia, no longer manufactured???
 						;----------------
-						,"Anileridine"  ;
-						;----------------
-						,"Buprenorphine" ;<--primary
-						,"Butran"        ;
-						,"Suboxone"      ;
+						;,"buprenorphine"
+						;,"Butran"        ; <-- not in build domain, butran 10,15,20 is
+						;,"Suboxone"      ; <-- zz'd out
 						;----------------------
-						,"Butalbital"         ;  <--primary
-						,"Fiorinal"           ;
-						,"Fiorinal C 1/2"     ;
-						,"Fiorinal C 1/4"     ;
-						,"Ratio-Tecnal"       ;
-						,"Ratio-Tecnal C 1/2" ;
-						,"Ratio-Tecnal C 1/4" ;
+						;,"butalbital"         ;  <--primary  it's wierd... no products or mnemonics 
+						;,"Fiorinal"           ;
+						;,"Fiorinal C 1/2"     ; <-- not in build domain
+						;,"Fiorinal C 1/4"     ; <-- not in build domain
+						;,"Ratio-Tecnal"       ;
+						;,"Ratio-Tecnal C 1/2" ; <-- not in build domain
+						;,"Ratio-Tecnal C 1/4" ;  <-- not in build domain
 						;----------------------
-						,"Butorphanol"        ;  <--primary
-						,"Stadol NS"          ;
+						;,"Butorphanol"        ;  <--primary
+						;,"Stadol NS"          ; <-- zz'd in the OC
 						;----------------------
-						/*
-						Codeine when prescribed as a single entity or 
-						when included in a preparation containing 60 mg or more per dosage unit
-						*/
+						
+						;Codeine when prescribed as a single entity or 
+						;when included in a preparation containing 60 mg or more per dosage unit
+						
 						;-----------------------------------
-						,Codeine 15 mg tablet
-						,Codeine 30 mg tablet
-						,Codeine 60 mg tablet
-						,"Codeine Contin"
-						,"Empracet-60"
-						,"Ratio-Lenoltec No. 4"
-						,"Tylenol with Codeine No. 4"
+						;,"Codeine 15 mg tablet"
+						;,"Codeine 30 mg tablet"
+						;,"Codeine 60 mg tablet" ;<-- inactivated, zz'd
+						;,"Codeine Contin" 
 						;-----------------------------------
-						,"Ethchlorvynol"                   ;<--- primary
-						,"Placidyl"                        ;
+						;acetaminophen-codeine
+						;,"Empracet-60" ;<--- not in build
+						;,"Ratio-Lenoltec No. 4"  
+						;,"Tylenol with Codeine No. 4"  
 						;-----------------------------------
-						,"Fentanyl"     ; <--- primary
-						,"Duragesic"    ;
+						;,"Ethchlorvynol"                   ;<--- not in build domain
+						;,"Placidyl"                        ;<--- not in build domain
+						;-----------------------------------
+						;,"Fentanyl"     ; <--- primary
+						;,"Duragesic"    ;
 						;---------------------------
-						,"Hydrocodone"			   ;  <-- Primary
-						/*,"Dihydrocodeinone"*/    ;
-						,"Coristine-DH"            ;
-						,"Dimetane Expectorant-DC" ;
-						,"Hycodan"                 ;
-						,"Hycomine syrup"          ;
-						;-----------------------------------
-						,"Hydrocodone (Dihydrocodeinone)"  ; <--primary
-						,"Hycomine-S (pediatric syrup)"
-						,"Novahistex DH"
-						,"Novahistex DH Expectorant"
-						,"Novahistine DH"
-						,"Ratio-Coristex-DH"
-						,"Tussionex"
+						;,"Hydrocodone"			   ;  <-- Primary
+						;,"Dihydrocodeinone"    ;  <-- not in build
+						;,"Coristine-DH"            ;  <-- not in build
+						;------------------------------
+						;hydrocodone/brompheniramine/PE/guaifenesin; <-- PRIMARY
+						;,"Dimetane Expectorant-DC" ;
+						;----------------------------
+						;,"HYDROcodone";<-- primary
+						;,"Hycodan"                 ;
+						;----------------------------------
+						;,"ammonium chloride/HYDROcodone/PE/pyrilamine" ; <-- primary
+						;,"Hycomine syrup"          ;
+						;,"Hycomine-S (pediatric syrup)"
+						;,"Novahistex DH"
+						;,"Novahistex DH Expectorant"  ; <- not in build domain
+						;,"Novahistine DH"
+						;,"Ratio-Coristex-DH"
+						;,"HYDROcodone-phenyltoloxamine" ;<- primary
+						;,"Tussionex"
 						;------------------------------------
 						,"Hydromorphone"                    ; <--  primary
-						/* Dihydromorphinone */             ;
+						; Dihydromorphinone             ;
 						,"Dilaudid"                         ;
 						,"Dilaudid-HP"                      ;
 						,"Dilaudid-XP"                      ;
@@ -120,7 +136,7 @@ and ocs.mnemonic in (
 						,"Talwin"
 						;------------------------------------
 						,"Propoxyphene"                     ; <- primary
-						/*(Dextropropoxyphene)*/
+						;(Dextropropoxyphene)
 						,"Darvon-N"
 						,"692 Tablets"
 						,"642 Tablets"
@@ -133,5 +149,5 @@ and ocs.mnemonic in (
 						,"Tapentadol"                        ; <--- Primary
 						,"Nucynta"
 						)
-
+*/
 with time = 120
