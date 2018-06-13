@@ -1,0 +1,137 @@
+select 
+oc.primary_mnemonic
+,oc.cki
+,ocs.mnemonic
+,ocs.cki
+
+
+
+from 
+
+order_catalog oc
+,order_catalog_synonym ocs
+
+
+
+plan oc
+where oc.active_ind = 1
+
+
+join ocs
+where ocs.catalog_cd = oc.catalog_cd
+and ocs.active_ind = 1
+and ocs.mnemonic in (
+						;----------------
+						"Alfentanil"    ; <--primary?
+						,"Alfenta"      ;
+						;----------------
+						,"Anileridine"  ;
+						;----------------
+						,"Buprenorphine" ;<--primary
+						,"Butran"        ;
+						,"Suboxone"      ;
+						;----------------------
+						,"Butalbital"         ;  <--primary
+						,"Fiorinal"           ;
+						,"Fiorinal C 1/2"     ;
+						,"Fiorinal C 1/4"     ;
+						,"Ratio-Tecnal"       ;
+						,"Ratio-Tecnal C 1/2" ;
+						,"Ratio-Tecnal C 1/4" ;
+						;----------------------
+						,"Butorphanol"        ;  <--primary
+						,"Stadol NS"          ;
+						;----------------------
+						/*
+						Codeine when prescribed as a single entity or 
+						when included in a preparation containing 60 mg or more per dosage unit
+						*/
+						;-----------------------------------
+						,Codeine 15 mg tablet
+						,Codeine 30 mg tablet
+						,Codeine 60 mg tablet
+						,"Codeine Contin"
+						,"Empracet-60"
+						,"Ratio-Lenoltec No. 4"
+						,"Tylenol with Codeine No. 4"
+						;-----------------------------------
+						,"Ethchlorvynol"                   ;<--- primary
+						,"Placidyl"                        ;
+						;-----------------------------------
+						,"Fentanyl"     ; <--- primary
+						,"Duragesic"    ;
+						;---------------------------
+						,"Hydrocodone"			   ;  <-- Primary
+						/*,"Dihydrocodeinone"*/    ;
+						,"Coristine-DH"            ;
+						,"Dimetane Expectorant-DC" ;
+						,"Hycodan"                 ;
+						,"Hycomine syrup"          ;
+						;-----------------------------------
+						,"Hydrocodone (Dihydrocodeinone)"  ; <--primary
+						,"Hycomine-S (pediatric syrup)"
+						,"Novahistex DH"
+						,"Novahistex DH Expectorant"
+						,"Novahistine DH"
+						,"Ratio-Coristex-DH"
+						,"Tussionex"
+						;------------------------------------
+						,"Hydromorphone"                    ; <--  primary
+						/* Dihydromorphinone */             ;
+						,"Dilaudid"                         ;
+						,"Dilaudid-HP"                      ;
+						,"Dilaudid-XP"                      ;
+						,"Hydromorph Contin"                ;
+						;------------------------------------
+						,"Levorphanol"
+						;------------------------------------
+						,"Meperidine (Pethidine)"
+						,"Demerol"
+						;------------------------------------
+						,"Methadone"
+						;------------------------------------
+						,"Methaqualone"
+						;------------------------------------
+						,"Morphine"                         ;<- primary
+						,"M-Eslon"
+						,"Morphitec"
+						,"Morphine HP"
+						,"M.O.S."
+						,"M.O.S.-SR"
+						,"MS-IR"
+						,"MS Contin"
+						,"Tincture of Opium"
+						;------------------------------------
+						,"Normethadone"
+						;------------------------------------
+						,"Oxycodone"                         ;<- primary
+						,"Endocet"
+						,"Endodan"
+						,"Oxycocet"
+						,"Oxycodan"
+						,"OxyContin"
+						,"Percocet"
+						,"Percocet-Demi"
+						,"Percodan"
+						,"Percodan-Demi"
+						,"Supeudol"
+						;------------------------------------
+						,"Pentazocine"                      ; <- primary
+						,"Talwin"
+						;------------------------------------
+						,"Propoxyphene"                     ; <- primary
+						/*(Dextropropoxyphene)*/
+						,"Darvon-N"
+						,"692 Tablets"
+						,"642 Tablets"
+						,"Novo-Propoxyn"
+						,"Novo-Propoxyn Compound"
+						;-------------------------------------
+						,"Sufentanil"                        ; <--- Primary
+						,"Sufenta"
+						;-------------------------------------
+						,"Tapentadol"                        ; <--- Primary
+						,"Nucynta"
+						)
+
+with time = 120
