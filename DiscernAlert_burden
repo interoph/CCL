@@ -1,53 +1,58 @@
-/* 
-creator:  Lewis Schmidt
-purpose:  to provide a summary of alerts per position and location
-changelog:  draft
-*/
 
 SELECT
-
 Program_Rule = edlg.program_name
-, e.dlg_prsnl_id
-, e.encntr_id
-;, e.long_text_id
-, e.override_reason_cd
-, e.person_id
-, e.trigger_entity_name
-, e.trigger_order_id
+,e.dlg_prsnl_id
+,e.encntr_id
+
+,override_reason = uar_get_code_display(e.override_reason_cd)
+,e.trigger_entity_name
+,e.trigger_order_id
+,User_position = uar_get_code_meaning(u.position_cd)
 
 
-/*eks_alert_esc_hist eaeh */
-, eaeh.ack_comment
-, eaeh.alert_source
-, eaeh.failure_reason
-, eaeh.msg_long_text_id
-, eaeh.msg_type_cd
-, eaeh.subject_prefix_text
-, eaeh.subject_text
+, patient = p.NAME_FULL_FORMATTED
+, Person_type = uar_get_code_meaning(p.PERSON_TYPE_CD) 
+, location = uar_get_code_display(en.loc_facility_cd)
 
 FROM
-
-	eks_dlg_event   e
-	, eks_dlg   edlg
-	, eks_alert_esc_hist eaeh
-	, person   p
-	, prsnl   user
+eks_dlg_event e
+,eks_dlg edlg
+,person p
+,prsnl u
+,encounter en
 
 plan e
-	Where E.DLG_DT_TM between cnvtdate(12012017) and cnvtdate(12072017)
-      ;  and e.dlg_name = ""
-	
-Join edlg
-	where edlg.dlg_name = e.dlg_name  /*Unique identifier for an Insight.*/
+Where E.DLG_DT_TM between cnvtdate(6012018) and cnvtdate(6072018)
+;  and e.dlg_name = ""
 
-join eaeh
-	where eaeh.alert_id = e.alert_long_text_id
+Join edlg
+where edlg.dlg_name = e.dlg_name
 
 join p
-	where p.person_id = e.person_id
-	and p.active_ind = 1
+where p.person_id = e.person_id
+and p.active_ind = 1
 
-join user
-	where user.person_id = e.dlg_prsnl_id
+join u
+where u.person_id = e.dlg_prsnl_id
+
+join en
+        where en.encntr_id = e.encntr_id
+        and en.loc_facility_cd in(
+                                                ;CODE_VALUE     DISPLAY
+                                                21198290        ;Location
+                                                ,271998575      ;location
+                                                ,271998583      ;location
+                                                ,271998479      ;location
+                                                ,276041517      ;location
+                                                ,276497813      ;location
+                                                ,344062579      ;location
+                                                ,349503863      ;location
+                                                ,499091795      ;location
+                                                ,516280427      ;location
+                                                ,416024841      ;location
+                                                ,428514323      ;location
+                                                ,275964153      ;location
+                                                ,275964173      ;location
+                                                )
 
 WITH  time = 120
