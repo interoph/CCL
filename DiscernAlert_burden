@@ -1,39 +1,68 @@
 
 SELECT
-Program_Rule = edlg.program_name
-,e.dlg_prsnl_id
-,e.encntr_id
 
-,override_reason = uar_get_code_display(e.override_reason_cd)
-,e.trigger_entity_name
-,e.trigger_order_id
-,User_position = uar_get_code_meaning(u.position_cd)
-
-
-, patient = p.NAME_FULL_FORMATTED
-, Person_type = uar_get_code_meaning(p.PERSON_TYPE_CD) 
+ rule = e.dlg_name
+, Alert_Dt_Tm = e.dlg_dt_tm
+, userloggedin_name = u.NAME_FULL_FORMATTED
+, userloggedin = u.username
+, userrole = uar_get_code_display(u.position_cd)
+, patient = p.name_full_formatted
+, FIN = ea.alias
+, admit_reason = uar_get_code_display(en.admit_type_cd)
+, en.reason_for_visit
+;, birth_date1 = p.birth_dt_tm
+, age = cnvtage(p.birth_dt_tm,o.orig_order_dt_tm,0)
+, override_reason = uar_get_code_display(e.override_reason_cd)
+, o.hna_order_mnemonic
+, o.order_mnemonic
+, o.clinical_display_line
+, therapeutic_category = A.LONG_DESCRIPTION
 , location = uar_get_code_display(en.loc_facility_cd)
 
+/* long_text lt */
+, Free_Text_Override = lt.long_text
+, Discern_Alert = lt2.long_text
+
 FROM
-eks_dlg_event e
-,eks_dlg edlg
-,person p
-,prsnl u
-,encounter en
+	eks_dlg_event 			e
+	,eks_dlg edlg
+	, person 			p
+	, prsnl 			u
+	, orders  			o
+	, long_text   			lt
+	, long_text   			lt2
+	, encounter 			en
+	, encntr_alias 			ea
+	, alt_sel_list  	 	ASL
+	, ALT_SEL_CAT   		A
+;	, CLINICAL_EVENT  		C
+;	, CE_STRING_RESULT 		CE
+
 
 plan e
-Where E.DLG_DT_TM between cnvtdate(6012018) and cnvtdate(6072018)
-;  and e.dlg_name = ""
+	;Where e.dlg_name = "PHA_EKM!PHA_STP_DRC_W_HISTORY_EX"
+	where  E.DLG_DT_TM between cnvtdate(06022018) and cnvtdate(06202018)
 
 Join edlg
 where edlg.dlg_name = e.dlg_name
+;and e.dlg_dt_tm between cnvtdate(6022018) and cnvtdate(6072018)
+
 
 join p
-where p.person_id = e.person_id
-and p.active_ind = 1
+	where p.person_id = e.person_id
 
 join u
-where u.person_id = e.dlg_prsnl_id
+	where u.person_id = e.DLG_PRSNL_ID
+
+join o
+	where o.order_id = e.trigger_order_id
+	
+Join lt 
+	where lt.long_text_id = e.long_text_id
+;	and lt.active_ind = 1
+
+Join lt2
+	where lt2.long_text_id = e.alert_long_text_id
 
 join en
         where en.encntr_id = e.encntr_id
@@ -55,4 +84,25 @@ join en
                                                 ,275964173      ;location
                                                 )
 
-WITH  time = 120
+Join ASL 
+	where asl.synonym_id = o.synonym_id
+	
+Join A 
+	where a.alt_sel_category_id = asl.alt_sel_category_id 
+	and A.AHFS_IND = 1
+	
+join ea
+       where o.encntr_id =ea.encntr_id
+       and EA.ENCNTR_ALIAS_TYPE_CD =1077
+;       and ea.alias = "###FIN#####" ; <--fin number
+	
+;Join C
+;	where c.encntr_id = e.encntr_id
+;	and c.order_id = e.trigger_entity_id
+;	and c.catalog_cd = "xxxxx.00"
+	
+;Join CE
+;	where ce.event_id = c.event_id
+	
+
+with time = 120, maxrec =10
