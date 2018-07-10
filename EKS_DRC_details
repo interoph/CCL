@@ -47,6 +47,7 @@ join u
 
 join o
 	where o.order_id = e.trigger_order_id
+	and o.catalog_type_cd = 2516.00
 	
 Join lt 
 	where lt.long_text_id = e.long_text_id
