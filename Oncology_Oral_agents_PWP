@@ -2,12 +2,12 @@
 /* this is a combination of selecting orders by therapeutic class and displaying powerplans, big big thanks to Charles helping me
 with the correct Path, pun intented, to showing Oncology powerplans */
 
-SELECT
-	Power_Plan = p.description
-	, Subphase = pca.description
-	, PowerOrder = O.MNEMONIC
+SELECT distinct
+;	Power_Plan = p.description
+;	, Subphase = pca.description
+	 PowerOrder = O.MNEMONIC
 	, Order_Catalog_Therapeutic_Category = A.LONG_DESCRIPTION
-	, Multum_Therapeutic_Category = M.CATEGORY_NAME
+;	, Multum_Therapeutic_Category = M.CATEGORY_NAME
 	, PowerOrder_type = uar_get_code_display(o.mnemonic_type_cd)
 	, IVSet = IF(PCO.IV_COMP_SYN_ID = 0)"No"
 			  ELSE "Yes"
@@ -43,8 +43,28 @@ JOIN PC where PC.PW_CAT_S_ID = P.PATHWAY_CATALOG_ID and PC.TYPE_MEAN = "GROUP"
 Join PCA where PCA.PATHWAY_CATALOG_ID = PC.PW_CAT_T_ID
 	and pca.active_ind =1
 Join PCAT where PCAT.PATHWAY_CATALOG_ID = PCA.PATHWAY_CATALOG_ID and PCAT.ACTIVE_IND = 1
-Join O where O.SYNONYM_ID = PCAT.PARENT_ENTITY_ID and O.CATALOG_TYPE_CD = 2516
+Join O 
+	where O.SYNONYM_ID = PCAT.PARENT_ENTITY_ID 
+	and O.CATALOG_TYPE_CD = 2516
 	and o.active_ind =1
+    and o.mnemonic_type_cd in(
+							;CODE_VALUE	DISPLAY
+							;2580	;Brand Name
+							;2581	;Direct Care Provider
+							;614542	;C - Dispensable Drug Names
+							;2582	;Generic Name
+							614548	;Y - Generic Products
+							,614544	;M - Generic Miscellaneous Products
+							;614543	;E - IV Fluids and Nicknames
+							;614546	;Outreach
+							;614547	;PathLink
+							;2583	;Primary
+							;2584	;Rx Mnemonic
+							;2585	;Surgery Med
+							,614549	;Z - Trade Products
+							,614545	;N - Trade Miscellaneous Products
+							)
+
 Join OC where oc.catalog_cd = o.catalog_cd and oc.active_ind = 1 and oc.primary_mnemonic != "zz*" and oc.primary_mnemonic != "ZZ" 
 join ocsfr where ocsfr.synonym_id = o.synonym_id
 Join ASL where asl.synonym_id = o.synonym_id
@@ -75,6 +95,7 @@ join M 	where MC.MULTUM_CATEGORY_ID = M.MULTUM_CATEGORY_ID ; therapeutic Class
 join PCO where PCO.PATHWAY_COMP_ID = PCAT.PATHWAY_COMP_ID
 join OS	where OS.ORDER_SENTENCE_ID = PCO.ORDER_SENTENCE_ID
 
-order by p.description, pca.description, o.mnemonic, pco.order_sentence_seq
+
+;order by p.description, pca.description, o.mnemonic, pco.order_sentence_seq
 
 with time = 60
