@@ -1,1 +1,80 @@
 
+/* this is a combination of selecting orders by therapeutic class and displaying powerplans, big big thanks to Charles helping me
+with the correct Path, pun intented, to showing Oncology powerplans */
+
+SELECT
+	Power_Plan = p.description
+	, Subphase = pca.description
+	, PowerOrder = O.MNEMONIC
+	, Order_Catalog_Therapeutic_Category = A.LONG_DESCRIPTION
+	, Multum_Therapeutic_Category = M.CATEGORY_NAME
+	, PowerOrder_type = uar_get_code_display(o.mnemonic_type_cd)
+	, IVSet = IF(PCO.IV_COMP_SYN_ID = 0)"No"
+			  ELSE "Yes"
+			  ENDIF
+	, OrderSentence = OS.ORDER_SENTENCE_DISPLAY_LINE
+	, Orders_View = 	if(ocsfr.facility_cd = 0) "ALL"
+					else uar_get_code_display(ocsfr.facility_cd)
+					endif
+
+FROM
+	PATHWAY_CATALOG   P
+	, PW_CAT_RELTN   PC
+	, PATHWAY_CATALOG   PCA
+	, PATHWAY_COMP   PCAT
+	, ORDER_CATALOG_SYNONYM   O
+	, order_catalog   oc
+	, ocs_facility_r ocsfr
+	, alt_sel_list   ASL
+	, ALT_SEL_CAT   A
+	, MLTM_DRUG_CATEGORIES M
+	, MLTM_CATEGORY_DRUG_XREF   MC
+	, PW_COMP_OS_RELTN   PCO
+	, ORDER_SENTENCE   OS
+
+PLAN P
+	WHERE P.TYPE_MEAN = "PATHWAY"
+		and P.ACTIVE_IND = 1 and P.END_EFFECTIVE_DT_TM > CNVTDATETIME(CURDATE, curtime3) 
+		and p.pathway_type_cd = 20584402.00/*  plan type = oncology*/
+		and p.description != "zz*" and p.description != "ZZ*" and p.description != "test*"
+	
+JOIN PC where PC.PW_CAT_S_ID = P.PATHWAY_CATALOG_ID and PC.TYPE_MEAN = "GROUP"
+
+Join PCA where PCA.PATHWAY_CATALOG_ID = PC.PW_CAT_T_ID
+	and pca.active_ind =1
+Join PCAT where PCAT.PATHWAY_CATALOG_ID = PCA.PATHWAY_CATALOG_ID and PCAT.ACTIVE_IND = 1
+Join O where O.SYNONYM_ID = PCAT.PARENT_ENTITY_ID and O.CATALOG_TYPE_CD = 2516
+	and o.active_ind =1
+Join OC where oc.catalog_cd = o.catalog_cd and oc.active_ind = 1 and oc.primary_mnemonic != "zz*" and oc.primary_mnemonic != "ZZ" 
+join ocsfr where ocsfr.synonym_id = o.synonym_id
+Join ASL where asl.synonym_id = o.synonym_id
+Join A	where asl.alt_sel_category_id = a.alt_sel_category_id	and A.AHFS_IND = 1
+	and A.Long_Description in (
+     ;ORDERCATALOG_THERAPEUTIC_CATEGORY
+	"bisphosphonates"	,"antiviral agents"	,"antineoplastics"	,"alkylating agents"
+	,"antineoplastic antibiotics"	,"antimetabolites"	,"antineoplastic hormones"	,"miscellaneous antineoplastics"
+	,"mitotic inhibitors"	,"radiopharmaceuticals"	,"biologicals"	,"colony stimulating factors"
+	,"immune globulins"	,"erythropoiesis-stimulating agents"	,"toxoids"	,"miscellaneous biologicals"
+	,"immunologic agents"	,"interferons"	,"immunosuppressive monoclonal antibodies"	,"immunosuppressive agents"
+	,"anti-CTLA-4 monoclonal antibodies"	,"other immunostimulants"	,"immunostimulants"	,"interleukin inhibitors"
+	,"interleukins"	,"CD30 monoclonal antibodies"	,"antineoplastic monoclonal antibodies"
+	,"antineoplastic interferons"	,"sclerosing agents"	,"therapeutic radiopharmaceuticals"	,"miscellaneous metabolic agents"
+	,"integrase strand transfer inhibitor"	,"antineoplastic detoxifying agents"	,"mTOR kinase inhibitors"
+	,"multikinase inhibitors"	,"BCR-ABL tyrosine kinase inhibitors"	,"CD52 monoclonal antibodies"
+	,"CD33 monoclonal antibodies"	,"CD20 monoclonal antibodies"	,"VEGF/VEGFR  inhibitors"	,"mTOR inhibitors"
+	,"EGFR inhibitors"	,"HER2 inhibitors"	,"histone deacetylase inhibitors"	,"bone resorption inhibitors"
+	,"antigonadotropic agents"	,"selective estrogen receptor modulators"	,"gonadotropin-releasing hormone antagonists"
+	,"antiandrogens"	,"aromatase inhibitors"	,"estrogen receptor antagonists"	,"progesterone receptor modulators"
+	,"trifunctional monoclonal antibodies"	,"hedgehog pathway inhibitors"	,"topical antineoplastics"
+	,"proteasome inhibitors"	,"phosphate binders"	,"NK1 receptor antagonists"	
+	,"neprilysin inhibitors"	,"CD38 monoclonal antibodies"	,"anti-PD-1 monoclonal antibodies"	,"PARP inhibitors"
+	,"antineoplastic combinations"	,"PI3K inhibitors"	,"CDK 4/6 inhibitors"	,"calcimimetics"	,"VMAT2 inhibitors"	)
+	
+join MC where substring(9,15,(OC.cki)) = MC.drug_identifier
+join M 	where MC.MULTUM_CATEGORY_ID = M.MULTUM_CATEGORY_ID ; therapeutic Class
+join PCO where PCO.PATHWAY_COMP_ID = PCAT.PATHWAY_COMP_ID
+join OS	where OS.ORDER_SENTENCE_ID = PCO.ORDER_SENTENCE_ID
+
+order by p.description, pca.description, o.mnemonic, pco.order_sentence_seq
+
+with time = 60
