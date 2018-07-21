@@ -1,0 +1,42 @@
+select
+facility = uar_get_code_display(e.loc_facility_cd)
+,nursing_unit = uar_get_code_display(e.loc_nurse_unit_cd)
+,o.encntr_id
+,FIN = ea.alias
+,o.dept_misc_line
+,p.name_full_formatted
+
+;,o.need_rx_verify_ind
+;,prod_assign = decode(op.seq,0,1)
+;rpc.*
+
+from 
+rx_pending_charge rpc
+,encounter e
+,encntr_alias ea
+,orders o
+,order_product op
+, person p
+
+
+plan rpc 
+where rpc.admin_dt_tm > cnvtdatetime("20-JUL-2018")
+
+join o 
+where rpc.order_id = o.order_id
+
+join e 
+where o.encntr_id = e.encntr_id
+
+join ea 
+where e.encntr_id = ea.encntr_id
+and ea.encntr_alias_type_cd = 1077.00
+
+join op 
+where op.order_id = outerjoin(o.order_id)
+
+join p
+where p.person_id = o.person_id
+
+order by facility, nursing_unit, o.encntr_id, o.order_id
+with time = 120, maxrec = 1000
