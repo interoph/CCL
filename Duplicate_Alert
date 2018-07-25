@@ -1,0 +1,46 @@
+select
+oc.primary_mnemonic
+,ocs.mnemonic
+,order_type = uar_get_code_display(ocs.mnemonic_type_cd)
+,aad.category_duplication_ind
+,aad.maximum_occurrences_nbr
+,aad.observed_occurrences_nbr
+,aad.dcp_entity_reltn_id
+,aadd.encntr_id
+,aadd.subject_order_id
+,aadd.override_reason_cd
+,aadd.override_reason_long_text_id
+,aat.person_id
+,aat.prsnl_id
+
+from 
+
+alert_audit_dup  aad
+,alert_audit_dup_cat_cause  aadcc
+,alert_audit_dup_dom aadd
+,alert_audit_transaction  aat
+, order_catalog oc
+, order_catalog_synonym ocs
+
+plan aad
+
+join aadcc
+where aadcc.alert_audit_dup_id = aad.alert_audit_dup_id
+
+
+
+join aadd
+where aadd.alert_audit_dup_id = aad.alert_audit_dup_id
+
+
+join aat
+where aat.alert_audit_transaction_id = aad.alert_audit_transaction_id
+
+join oc
+where outerjoin(oc.cki) = concat("MUL.ORD!",trim(cnvtstring(aad.drug_identifier)))
+and oc.active_ind = 1
+
+join ocs
+where ocs.catalog_cd = oc.catalog_cd
+
+with time = 120, maxrec = 10
