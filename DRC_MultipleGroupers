@@ -1,0 +1,37 @@
+Select 							
+Order_name=substring(1,40,ocs.mnemonic)							
+,Order_type = uar_get_code_display(ocs.mnemonic_type_cd)							
+,grouper_name = drc.dose_range_check_name							
+;,ocs.virtual_view 							
+From 							
+order_catalog_synonym ocs							
+,drc_group_reltn d							
+,drc_form_reltn dfr							
+,dose_range_check drc							
+							
+Plan ocs							
+where ocs.catalog_type_cd = 2516.00							
+;where ml.hide_flag = 0							
+and ocs.active_ind = 1							
+and ocs.mnemonic != "zz*"							
+and ocs.mnemonic != "zzz*"							
+and ocs.virtual_view != null  ;<- not virtual viewed							
+							
+Join d 							
+where concat("MUL.ORD-SYN!",cnvtstring(d.drug_synonym_id)) = ocs.cki							
+and d.active_ind = 1							
+And d.drug_synonym_id in(select d2.drug_synonym_id 							
+							from drc_group_reltn d2
+							where d2.drug_synonym_id>0
+							group by d2.drug_synonym_id 
+							having count(*) > 1)
+join dfr 							
+where d.drc_group_id = dfr.drc_group_id							
+JOIN drc 							
+where dfr.dose_range_check_id = drc.dose_range_check_id 							
+and drc.active_ind = 1							
+							
+order by ocs.mnemonic asc, ocs.mnemonic_type_cd, grouper_name asc							
+							
+with time = 120							
+go 							
