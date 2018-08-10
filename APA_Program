@@ -1,0 +1,287 @@
+Drop program ls_apa_order_audit go
+Create program ls_apa_order_audit
+ 
+prompt
+	"Output to File/Printer/MINE" = "MINE"   ;* Enter or select the printer or file name to send this report to.
+ 
+with OUTDEV
+ 
+ 
+/** ADD PROMPTS **/
+ 
+record order_audit(
+	1 cnt = i4
+	1 orders[*]
+		2 order_id = f8
+		2 item_id = f8
+		2 encntr_id = f8
+		2 pt_name = vc
+		2 pt_fin = vc
+		2 order_person = vc
+		2 encntr_type = vc
+		2 pt_location = vc
+		2 facility = vc
+		2 power_order = vc
+		2 power_order_type = vc
+		2 order_display = vc
+		2 powerplan_order = f8
+		2 powerplan_name = vc
+		2 updt_dt_tm = dq8
+		2 auto_assign_flag = i4
+		2 product_description = vc
+		2 continuous_filter_ind = i4
+		2 intermittent_filter_ind = i4
+		2 med_filter_ind = i4
+		2 order_route = vc
+		2 order_form = vc
+		2 need_rx_verify = vc
+		2 order_catalog_auto_alert = vc
+		2 order_catalog_auto_interact = vc
+		2 order_freetext_dose = vc
+		2 order_strength = f8
+		2 order_strength_unit = vc
+		2 order_volume = f8
+		2 order_volume_unit = vc
+		2 status_msg = vc
+		2 rpaa_status_number = vc
+		2 rpaa_report_level = i4
+)
+ 
+Select into 'nl:'
+From order_product op,
+	orders o,
+	order_catalog_synonym ocs,
+	encounter e,
+	encntr_alias ea,
+	person p_pat,
+	prsnl p_phys
+Plan op
+	where op.auto_assign_flag not in (0, 1)
+	and op.updt_dt_tm between cnvtdatetime("01-JAN-2018 0000") and cnvtdatetime("02-JAN-2018 2359")
+Join o
+	where o.order_id = op.order_id
+	and o.orig_order_dt_tm between cnvtdatetime("01-JAN-2018 0000") and cnvtdatetime("02-JAN-2018 2359")
+Join e
+	where e.encntr_id = o.encntr_id
+	and e.loc_facility_cd in(
+						21198290
+						,271998575
+						,271998583
+						,271998479
+						,276041517
+						,276497813
+						,344062579
+						,349503863
+						,499091795
+						,516280427
+						,416024841
+						,428514323
+						,275964153
+						,275964173
+						)
+Join ea
+	where ea.encntr_id = e.encntr_id
+	and ea.encntr_alias_type_cd = 1077.0
+Join ocs
+	where ocs.synonym_id = o.synonym_id
+Join p_pat
+	where p_pat.person_id = e.person_id
+join p_phys
+	where p_phys.person_id = o.active_status_prsnl_id
+Detail
+	cnt = order_audit->cnt + 1
+	order_audit->cnt = cnt
+	stat = alterlist(order_audit->orders, cnt)
+	order_audit->orders[cnt].order_id = o.order_id
+	order_audit->orders[cnt].item_id = op.item_id
+	order_audit->orders[cnt].encntr_id = e.encntr_id
+	order_audit->orders[cnt].pt_name = p_pat.name_full_formatted
+	order_audit->orders[cnt].pt_fin = ea.alias
+	order_audit->orders[cnt].order_person = p_phys.name_full_formatted
+	order_audit->orders[cnt].power_order = ocs.mnemonic
+	order_audit->orders[cnt].power_order_type = uar_get_code_display(ocs.mnemonic_type_cd)
+	order_audit->orders[cnt].order_display = o.dept_misc_line
+	order_audit->orders[cnt].powerplan_order = o.pathway_catalog_id
+	order_audit->orders[cnt].updt_dt_tm = op.updt_dt_tm
+	order_audit->orders[cnt].auto_assign_flag = op.auto_assign_flag
+ 
+	case(o.need_rx_verify_ind)
+		of 0: order_audit->orders[cnt].need_rx_verify = "Does Not Need Verification"
+		of 1: order_audit->orders[cnt].need_rx_verify = "Needs Verification"
+		of 2: order_audit->orders[cnt].need_rx_verify = "Rejected or Halted"
+		of 3: order_audit->orders[cnt].need_rx_verify = "Rejected or Halted Child Order"
+	endcase
+With nocounter, time = 120
+ 
+Select into 'nl:'
+From (dummyt d1 with seq=order_audit->cnt),
+	item_definition id
+Plan d1
+	where order_audit->orders[d1.seq].item_id > 0.0
+Join id
+	where id.item_id = order_audit->orders[d1.seq].item_id
+Detail
+	order_audit->orders[d1.seq].product_description = id.unique_field
+With nocounter
+ 
+Select into 'nl:'
+From (dummyt d1 with seq=order_audit->cnt),
+	rx_auto_verify_audit rava,
+	rx_product_assign_group_audit rpaga,
+	rx_product_assign_item_audit rpaia,
+	rx_product_assign_audit rpaa
+Plan d1
+	where order_audit->orders[d1.seq].order_id > 0.0
+Join rava
+	where rava.order_id = order_audit->orders[d1.seq].order_id
+Join rpaga
+	where rpaga.catalog_group_id = rava.catalog_group_id
+Join rpaia
+	Where rpaia.catalog_group_id = rpaga.catalog_group_id
+Join rpaa
+	where rpaa.catalog_group_id = rava.catalog_group_id
+Detail
+	order_audit->orders[d1.seq].encntr_type = uar_get_code_display(rpaga.encntr_type_cd)
+	order_audit->orders[d1.seq].pt_location = uar_get_code_display(rpaga.pat_locn_cd)
+	order_audit->orders[d1.seq].facility = uar_get_code_display(rpaga.facility_cd)
+	order_audit->orders[d1.seq]continuous_filter_ind = rpaga.continuous_filter_ind
+	order_audit->orders[d1.seq].intermittent_filter_ind = rpaga.intermittent_filter_ind
+	order_audit->orders[d1.seq].med_filter_ind = rpaga.med_filter_ind
+	order_audit->orders[d1.seq].order_route = uar_get_code_display(rpaga.route_cd)
+	order_audit->orders[d1.seq].order_form = uar_get_code_display(rpaga.form_cd)
+ 
+	case (rava.discern_auto_verify_flag)
+		of 0.00: order_audit->orders[d1.seq].order_catalog_auto_alert = "Not Set"
+		of 1.00: order_audit->orders[d1.seq].order_catalog_auto_alert = "No Auto Verification Performed"
+		of 2.00: order_audit->orders[d1.seq].order_catalog_auto_alert = "If Alert Exists, Autoverification Is Not Performed"
+		of 3.00: order_audit->orders[d1.seq].order_catalog_auto_alert = "Only Auto Verify If a Reason Was Provided With The Alert(s)"
+		of 4.00: order_audit->orders[d1.seq].order_catalog_auto_alert = "Auto Verify Regardless of Alerts"
+	endcase
+ 
+	case (rava.ic_auto_verify_flag)
+		of 0.00: order_audit->orders[d1.seq].order_catalog_auto_interact = "Not Set"
+		of 1.00: order_audit->orders[d1.seq].order_catalog_auto_interact = "No Auto Verification Performed"
+		of 2.00: order_audit->orders[d1.seq].order_catalog_auto_interact = "If Alerts Exists, Autoverification Is Not Performed"
+		of 3.00: order_audit->orders[d1.seq].order_catalog_auto_interact = "Only Autoverify If a Reason Was Provided With The Alert(s)"
+		of 4.00: order_audit->orders[d1.seq].order_catalog_auto_interact = "Auto Verify Regardless of Alerts"
+	endcase
+ 
+	order_audit->orders[d1.seq].order_freetext_dose = rpaia.freetext_dose
+	order_audit->orders[d1.seq].order_strength = rpaia.strength
+	order_audit->orders[d1.seq].order_strength_unit = uar_get_code_display(rpaia.strength_unit_cd)
+	order_audit->orders[d1.seq].order_volume = rpaia.volume
+	order_audit->orders[d1.seq].order_volume_unit = uar_get_code_display(rpaia.volume_unit_cd)
+	order_audit->orders[d1.seq].status_msg = rpaa.status_message
+ 
+	case (rpaa.status_number)
+		of 0.00: order_audit->orders[d1.seq].rpaa_status_number =
+			"Found a match successfully. Matching item is recorded in set_item_id or item_id field"
+		of 1.00: order_audit->orders[d1.seq].rpaa_status_number =
+			"Fail to match because of reason recorded in status_number and status_string fields"
+		of 2.00: order_audit->orders[d1.seq].rpaa_status_number =
+			"Additional information about a specific event with details recorded in status_number and status_string fields"
+	endcase
+	order_audit->orders[d1.seq].rpaa_report_level = rpaa.report_level_flag
+With nocounter
+ 
+select into 'nl:'
+from (dummyt d1 with seq=order_audit->cnt),
+	pathway_catalog pc
+plan d1
+	where order_audit->orders[d1.seq].powerplan_order > 0.0
+join pc
+	where pc.pathway_catalog_id = order_audit->orders[d1.seq].powerplan_order
+detail
+	order_audit->orders[d1.seq].powerplan_name = pc.description
+with nocounter
+ 
+/** ADD REPORT OUTPUT **/
+call echorecord(order_audit)
+ 
+/*
+execute reportrtl
+%i ccluserdir:ls_apa_order_audit_rpt.dvl
+ 
+select into 'nl:'
+from (dummyt d1 with seq=order_audit->cnt)
+plan d1
+detail
+	call DetailSection(Rpt_Render)
+foot report
+	call FinalizeReport($OUTDEV)
+with nocounter
+*/
+ 
+select into 'nl:'
+from (dummyt d1 with seq=order_audit->cnt),
+	encounter e
+plan d1
+	where order_audit->orders[d1.seq].facility = ""
+join e
+	where e.encntr_id = order_audit->orders[d1.seq].encntr_id
+detail
+	order_audit->orders[d1.seq].facility = uar_get_code_display(e.loc_facility_cd)
+with nocounter
+ 
+select into 'nl:'
+from (dummyt d1 with seq=order_audit->cnt),
+	encounter e
+plan d1
+	where order_audit->orders[d1.seq].pt_location = ""
+join e
+	where e.encntr_id = order_audit->orders[d1.seq].encntr_id
+detail
+	order_audit->orders[d1.seq].pt_location = trim(uar_get_code_display(e.loc_nurse_unit_cd))
+with nocounter
+ 
+declare output=c1000
+select into $OUTDEV
+from (dummyt d1 with seq=order_audit->cnt)
+plan d1
+head report
+	output = concat("FAC|LOC|PT_NAME|PT_FIN|ORDER_ID|ITEM_ID|ENC_TYPE|POWER_ORDER|POWER_ORDER_TYPE|",
+		"ORDER_DISPLAY|POWERPLAN_ORDER|UPDT_DT_TM|AUTO_ASSIGN|PRODUCT_DESC|CONT_FILTER|INTERMITTENT_FILTER|",
+		"MED_FILTER|ORDER_ROUTE|ORDER_FORM|RX_VERIFY|AUTO_ALERT|AUTO_INTERACT|DOSE|STRENGTH|STRENGTH_UNIT|",
+		"VOLUME|VOLUME_UNIT|STATUS_NUMBER|REPORT_LEVEL")
+	col 000 output
+	row+1
+detail
+	output=""
+	output = build(trim(order_audit->orders[d1.seq].facility),"|",
+		trim(order_audit->orders[d1.seq].pt_location),"|",
+		trim(order_audit->orders[d1.seq].pt_name),"|",
+		trim(order_audit->orders[d1.seq].pt_fin),"|",
+		order_audit->orders[d1.seq].order_id,"|",
+		order_audit->orders[d1.seq].item_id,"|",
+		trim(order_audit->orders[d1.seq].encntr_type),"|",
+		trim(order_audit->orders[d1.seq].power_order),"|",
+		trim(order_audit->orders[d1.seq].power_order_type),"|",
+		trim(order_audit->orders[d1.seq].order_display),"|",
+		order_audit->orders[d1.seq].powerplan_order,"|",
+		format(order_audit->orders[d1.seq].updt_dt_tm,"mm/dd/yyyy hh:mm;;q"),"|",
+		order_audit->orders[d1.seq].auto_assign_flag,"|",
+		order_audit->orders[d1.seq].product_description,"|",
+		order_audit->orders[d1.seq].continuous_filter_ind,"|",
+		order_audit->orders[d1.seq].intermittent_filter_ind,"|",
+		order_audit->orders[d1.seq].med_filter_ind,"|",
+		trim(order_audit->orders[d1.seq].order_route),"|",
+		trim(order_audit->orders[d1.seq].order_form),"|",
+		trim(order_audit->orders[d1.seq].need_rx_verify),"|",
+		trim(order_audit->orders[d1.seq].order_catalog_auto_alert),"|",
+		trim(order_audit->orders[d1.seq].order_catalog_auto_interact),"|",
+		trim(order_audit->orders[d1.seq].order_freetext_dose),"|",
+		order_audit->orders[d1.seq].order_strength,"|",
+		trim(order_audit->orders[d1.seq].order_strength_unit),"|",
+		order_audit->orders[d1.seq].order_volume,"|",
+		trim(order_audit->orders[d1.seq].order_volume_unit),"|",
+		trim(order_audit->orders[d1.seq].rpaa_status_number),"|",
+		order_audit->orders[d1.seq].rpaa_report_level)
+	col 000 output
+	row+1
+with nocounter,maxcol=1001
+ 
+end
+go
+ 
+ 
+ 
