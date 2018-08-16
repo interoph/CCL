@@ -3,7 +3,7 @@ select distinct
 CPOE_Order = o.ordered_as_mnemonic
 ,Power_Order = ocs.mnemonic  
 ,Order_type = uar_get_code_display(ocs.mnemonic_type_cd)
-,o.order_detail_display_line
+;,o.order_detail_display_line
 ;, os.order_sentence_display_line
 ;, route = cv.display
 , therapeutic_category = a.long_description
@@ -22,7 +22,7 @@ orders o
 
 Plan o
 where o.orig_order_dt_tm > sysdate - 15  ;integer determines the date back in days (sysdate)
-and o.order_status_cd in (2543.00); cs 6004, Future 2546.00, Ordered 2550.00, Completed 2543.00
+;and o.order_status_cd in (2543.00); cs 6004, Future 2546.00, Ordered 2550.00, Completed 2543.00
 and o.catalog_type_cd = 2516.00; cs 6000, pharmacy
 and o.activity_type_cd = 705.00; cs 106, pharmacy = 705.00
 and o.template_order_id = 0; child orders are > 0
@@ -134,8 +134,39 @@ and A.Long_Description in (
 ,"VEGF/VEGFR  inhibitors"	
 )
 
-
+/*join OS					
+	where OS.ORDER_SENTENCE_ID = ocs.order_sentence_id			
+	
+					
+*/					
+/*Join cv ; code_value					
+	where cv.code_set = 4001		
+		and cv.display != "IntraMuscular"	
+		and cv.display != "IntraVesical"	
+		and cv.display != "IV Piggyback"
+		and cv.display != "SubCutaneous"
+		and cv.display != "IV Push"
+		and cv.display != "IntraPeritoneal"			
+		or cv.display = "Oral Topical"			
+		or cv.display = "Buccal"			
+		or cv.display = "Gastrostomy Tube"			
+		or cv.display = "Jejunostomy Tube"			
+		or cv.display = "Nasogastric Tube"			
+		or cv.display = "Oral"			
+		or cv.display = "Chew"			
+		or cv.display = "Feeding Tube"			
+		or cv.display = "Swish and Spit"			
+		or cv.display = "Oral Gastric Tube"			
+		or cv.display = "Nasojejunum Tube"			
+		or cv.display = "SubLingual"			
+		;or cv.display = "			
+		
+join osd2; order_sentence_detail
+        where osd2.order_sentence_id = os.order_sentence_id
+        and osd2.default_parent_entity_name = "CODE_VALUE"
+        and osd2.default_parent_entity_id = cv.code_value
+*/
 ;group by o.ordered_as_mnemonic, ocs.mnemonic , ocs.mnemonic_type_cd
 
 
-with time = 300, maxrec = 200, format(date, ";;q")
+with time = 600, format(date, ";;q")
