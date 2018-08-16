@@ -134,38 +134,7 @@ and A.Long_Description in (
 ,"VEGF/VEGFR  inhibitors"	
 )
 
-/*join OS					
-	where OS.ORDER_SENTENCE_ID = ocs.order_sentence_id			
-	
-					
-*/					
-/*Join cv ; code_value					
-	where cv.code_set = 4001		
-		and cv.display != "IntraMuscular"	
-		and cv.display != "IntraVesical"	
-		and cv.display != "IV Piggyback"
-		and cv.display != "SubCutaneous"
-		and cv.display != "IV Push"
-		and cv.display != "IntraPeritoneal"			
-		or cv.display = "Oral Topical"			
-		or cv.display = "Buccal"			
-		or cv.display = "Gastrostomy Tube"			
-		or cv.display = "Jejunostomy Tube"			
-		or cv.display = "Nasogastric Tube"			
-		or cv.display = "Oral"			
-		or cv.display = "Chew"			
-		or cv.display = "Feeding Tube"			
-		or cv.display = "Swish and Spit"			
-		or cv.display = "Oral Gastric Tube"			
-		or cv.display = "Nasojejunum Tube"			
-		or cv.display = "SubLingual"			
-		;or cv.display = "			
-		
-join osd2; order_sentence_detail
-        where osd2.order_sentence_id = os.order_sentence_id
-        and osd2.default_parent_entity_name = "CODE_VALUE"
-        and osd2.default_parent_entity_id = cv.code_value
-*/
+
 ;group by o.ordered_as_mnemonic, ocs.mnemonic , ocs.mnemonic_type_cd
 
 
