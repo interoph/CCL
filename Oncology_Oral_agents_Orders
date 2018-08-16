@@ -18,14 +18,15 @@ Plan o
 where o.orig_order_dt_tm > sysdate - 1  ;integer determines the date back in days (sysdate)
 and o.order_status_cd in (2543.00); cs 6004, Future 2546.00, Ordered 2550.00, Completed 2543.00
 and o.catalog_type_cd = 2516.00; cs 6000, pharmacy
-and o.activity_type_cd = 705.00; cs 106, pharmacy = 705.00
+;and o.activity_type_cd = 705.00; cs 106, pharmacy = 705.00
 and o.template_order_id = 0; child orders are > 0
 
 
 
 Join OCS
-where o.catalog_cd = ocs.catalog_cd
-and ocs.synonym_id = o.synonym_id
+;where o.catalog_cd = ocs.catalog_cd
+where ocs.synonym_id = o.synonym_id
+and ocs.catalog_type_cd = 2516.00
 and ocs.mnemonic_type_cd in(
 							;CODE_VALUE	DISPLAY
 							2580	;Brand Name
