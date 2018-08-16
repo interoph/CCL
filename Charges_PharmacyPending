@@ -5,7 +5,7 @@ facility = uar_get_code_display(e.loc_facility_cd)
 ,FIN = ea.alias
 ,o.dept_misc_line
 ,p.name_full_formatted
-
+,product_desc = mi.value
 ;,o.need_rx_verify_ind
 ;,prod_assign = decode(op.seq,0,1)
 ;rpc.*
@@ -17,7 +17,7 @@ rx_pending_charge rpc
 ,orders o
 ,order_product op
 , person p
-
+, med_identifier mi
 
 plan rpc 
 where rpc.admin_dt_tm > cnvtdatetime("20-JUL-2018")
@@ -27,16 +27,30 @@ where rpc.order_id = o.order_id
 
 join e 
 where o.encntr_id = e.encntr_id
+and e.active_ind = 1
+and e.end_effective_dt_tm > sysdate
 
 join ea 
 where e.encntr_id = ea.encntr_id
 and ea.encntr_alias_type_cd = 1077.00
+and ea.active_ind = 1
+and ea.end_effective_dt_tm > sysdate
 
 join op 
-where op.order_id = outerjoin(o.order_id)
+where op.order_id = outerjoin(rpc.order_id)
+and op.action_sequence = outerjoin(rpc.action_sequence)
+and op.ingred_sequence = outerjoin(rpc.comp_sequence)
 
 join p
 where p.person_id = o.person_id
+and p.active_ind = 1
+and p.end_effective_dt_tm > sysdate
+
+join mi
+where mi.item_id = outerjoin(op.item_id)
+and mi.med_identifier_type_cd = outerjoin(value(uar_get_code_by("MEANING", 11000, "DESC")))
+and mi.primary_ind = outerjoin(1)
+and mi.med_product_id = outerjoin(0)
 
 order by facility, nursing_unit, o.encntr_id, o.order_id
 with time = 120, maxrec = 1000
