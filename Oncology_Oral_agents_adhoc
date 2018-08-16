@@ -3,7 +3,7 @@ SELECT distinct
            ,order_synonym = ocs.mnemonic
          	, os.order_sentence_display_line
 			, route = cv.display
-            
+            , therapeutic_category = a.long_description
  
 FROM
              order_catalog_synonym ocs
@@ -36,6 +36,12 @@ and ocs.mnemonic_type_cd in(
 							,614549	;Z - Trade Products
 							,614545	;N - Trade Miscellaneous Products
 									)
+or ocs.mnemonic in (
+					"*tablet*"
+					,"*Tab*"
+					,"*Tablet*"
+					,"*cap*"
+					)
  
 JOIN oc ; Order_catalog
 	WHERE oc.catalog_cd = ocs.catalog_cd
@@ -51,8 +57,14 @@ JOIN os ; ORDER_SENTENCE
  
  
 Join cv ; code_value					
-	where cv.code_set = 4001				
-		and cv.display = "Oral Topical"			
+	where cv.code_set = 4001
+		and cv.display != "IntraMuscular"	
+		and cv.display != "IntraVesical"	
+		and cv.display != "IV Piggyback"
+		and cv.display != "SubCutaneous"
+		and cv.display != "IV Push"
+		and cv.display != "IntraPeritoneal"			
+		or cv.display = "Oral Topical"			
 		or cv.display = "Buccal"			
 		or cv.display = "Gastrostomy Tube"			
 		or cv.display = "Jejunostomy Tube"			
@@ -63,7 +75,8 @@ Join cv ; code_value
 		or cv.display = "Swish and Spit"			
 		or cv.display = "Oral Gastric Tube"			
 		or cv.display = "Nasojejunum Tube"			
-		or cv.display = "SubLingual"			
+		or cv.display = "SubLingual"
+		
 		;or cv.display = "			
 		
 join osd2; order_sentence_detail
