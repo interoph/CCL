@@ -1,82 +1,139 @@
-; Purpose:  Display Powerplans, Orders, Ordersentences, with PRN Reason (CS4005) of fever and Order Comment
-; thanks to Aaron Britton in helping troublshoot CLOB errors with this query)
-; By: lewis schmidt
-; Date:  06/02/2015 
-
-
-SELECT
-            Powerplan = p.description
-            , primary_mnemonic = oc.primary_mnemonic
-;            , pco.order_sentence_id
+SELECT distinct
+            primary_mnemonic = oc.primary_mnemonic
+           ,order_synonym = ocs.mnemonic
          	, os.order_sentence_display_line
-			, prn_reason = cv.display
-            , L.long_text
-;            , L.long_text_id
+			, route = cv.display
+            
  
 FROM
-            pathway_catalog p
-            , pathway_comp pc
-            , order_catalog_synonym o
+             order_catalog_synonym ocs
             , order_catalog oc
-            , pw_comp_os_reltn pco
             , order_sentence os
-            , long_text   l
             , code_value cv
     		, order_sentence_detail osd2
+    		, alt_sel_list   ASL
+			, ALT_SEL_CAT   A
  
  
-PLAN p ; Pathway_catalog
-	WHERE p.pathway_catalog_id > 0
-	;and P.description = "Abdominal Pain PEDS Surgery" ; to test for one specific powerplan
  
-JOIN pc ; Pathway_comp
-	WHERE pc.pathway_catalog_id = p.pathway_catalog_id
-	and pc.parent_entity_id = (select distinct   ; nested query to get around CLOB error when using Distinct upfront
-								o.synonym_id
-								from
-	 							order_catalog_synonym o
-								where o.active_ind = 1
-								and o.catalog_type_cd = 2516.00
-								)
- 
-JOIN o ; Order_Catalog_Synonym
-	WHERE o.synonym_id = outerjoin(pc.parent_entity_id)
+Plan ocs ; Order_Catalog_Synonym
+where ocs.active_ind = 1
+and ocs.activity_type_cd = 705.00
+and ocs.mnemonic_type_cd in(
+							;CODE_VALUE	DISPLAY
+							2580	;Brand Name
+							,2581	;Direct Care Provider
+							,614542	;C - Dispensable Drug Names
+							;2582	;Generic Name
+							,614548	;Y - Generic Products
+							,614544	;M - Generic Miscellaneous Products
+							,614543	;E - IV Fluids and Nicknames
+							;614546	;Outreach
+							;614547	;PathLink
+							,2583	;Primary
+							;2584	;Rx Mnemonic
+							;2585	;Surgery Med
+							,614549	;Z - Trade Products
+							,614545	;N - Trade Miscellaneous Products
+									)
  
 JOIN oc ; Order_catalog
-	WHERE oc.catalog_cd = outerjoin(o.catalog_cd)
+	WHERE oc.catalog_cd = ocs.catalog_cd
+	and oc.activity_type_cd = 705.00
+	and ocs.active_ind = 1
+	and oc.primary_mnemonic != "zz*" 
+	and oc.primary_mnemonic != "ZZ" 
  
-JOIN pco ; PW_COMP_OS_RELTN
-	WHERE pco.pathway_comp_id = outerjoin(pc.pathway_comp_id)
-	and  pco.order_sentence_id = (select distinct   ; nested query to get around CLOB error when using Distinct upfront
-								os.order_sentence_id
-								from
-	 							order_sentence os
-								)
  
 JOIN os ; ORDER_SENTENCE
-	WHERE os.order_sentence_id = outerjoin(pco.order_sentence_id)
+	WHERE os.order_sentence_id = ocs.order_sentence_id
  	and os.usage_flag > 0
  
-JOIN l ; LONG_TEXT
-	WHERE l.long_text_id = os.ord_comment_long_text_id
-	and l.active_ind = 1
  
-Join cv ; code_value
-	where cv.code_set = 4005
-	and cv.display = "fever"
-	or cv.display = "pain/fever"
-	or cv.display = "fever/discomfort"
-	or cv.display = "mild pain or fever"
- 
+Join cv ; code_value					
+	where cv.code_set = 4001				
+		and cv.display = "Oral Topical"			
+		or cv.display = "Buccal"			
+		or cv.display = "Gastrostomy Tube"			
+		or cv.display = "Jejunostomy Tube"			
+		or cv.display = "Nasogastric Tube"			
+		or cv.display = "Oral"			
+		or cv.display = "Chew"			
+		or cv.display = "Feeding Tube"			
+		or cv.display = "Swish and Spit"			
+		or cv.display = "Oral Gastric Tube"			
+		or cv.display = "Nasojejunum Tube"			
+		or cv.display = "SubLingual"			
+		;or cv.display = "			
+		
 join osd2; order_sentence_detail
         where osd2.order_sentence_id = os.order_sentence_id
         and osd2.default_parent_entity_name = "CODE_VALUE"
         and osd2.default_parent_entity_id = cv.code_value
+        
+
+Join ASL 
+	where asl.synonym_id = ocs.synonym_id
+
+Join A	
+	where asl.alt_sel_category_id = a.alt_sel_category_id	
+	and A.AHFS_IND = 1
+	and A.Long_Description in (
+     ;ORDERCATALOG_THERAPEUTIC_CATEGORY
+	"5-alpha-reductase inhibitors"
+,"alkylating agents"
+,"anti-PD-1 monoclonal antibodies"
+,"antiandrogens"
+,"antigonadotropic agents"
+,"antimetabolites"
+,"antineoplastic antibiotics"
+,"antineoplastic combinations"
+,"antineoplastic detoxifying agents"
+,"antineoplastic hormones"
+,"antineoplastic interferons"
+,"antineoplastic interferons"
+,"antineoplastic monoclonal antibodies"
+,"antineoplastics"
+,"antiviral interferons"
+,"aromatase inhibitors"
+,"BCR-ABL tyrosine kinase inhibitors"
+,"bisphosphonates"
+,"CD20 monoclonal antibodies"
+,"CD30 monoclonal antibodies"
+,"CD33 monoclonal antibodies"
+,"CD38 monoclonal antibodies"
+,"CD52 monoclonal antibodies"
+,"CDK 4/6 inhibitors"
+,"estrogen receptor antagonists"
+,"estrogens"
+,"gonadotropin-releasing hormone antagonists"
+,"gonadotropin-releasing hormone and analogs"
+,"hedgehog pathway inhibitors"
+,"HER2 inhibitors"
+,"histone deacetylase inhibitors"
+,"integrase strand transfer inhibitor"
+,"interferons"
+,"interleukin inhibitors"
+,"interleukins"
+,"miscellaneous antineoplastics"
+,"mitotic inhibitors"
+,"mTOR inhibitors"
+,"mTOR kinase inhibitors"
+,"multikinase inhibitors"
+,"PI3K inhibitors"
+,"progesterone receptor modulators"
+,"radiopharmaceuticals"
+,"selective estrogen receptor modulators"
+,"therapeutic radiopharmaceuticals"
+,"topical antineoplastics"
+,"TNF alpha inhibitors"
+,"VEGF/VEGFR  inhibitors"	
+)
+	
  
  
 ORDER BY
-            p.description
-            ,oc.primary_mnemonic
-            , pco.order_sentence_id
+            oc.primary_mnemonic, ocs.mnemonic
+
  
-WITH MAXREC = 2000, time = 300
+WITH time = 300
