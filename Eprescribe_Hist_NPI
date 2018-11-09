@@ -16,7 +16,7 @@ SELECT DISTINCT
   , DEA_SCHEDULE = mmdc.csa_schedule
   , ACTING_USER = p1.name_full_formatted
   , NPI = uar_get_code_display(pa.prsnl_alias_type_cd)
-  , "--->"
+  , Reference = "--->"
   , NPI_Value = pa.alias
 
 FROM
