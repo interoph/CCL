@@ -1,5 +1,4 @@
 SELECT DISTINCT
-
   ma_rx_id = M.RX_IDENTIFIER
   , type = sa.msg_trig_action_txt
   , status = uar_get_code_display(m.status_cd)
@@ -18,54 +17,77 @@ SELECT DISTINCT
   , NPI = uar_get_code_display(pa.prsnl_alias_type_cd)
   , Reference = "--->"
   , NPI_Value = pa.alias
-
+ 
 FROM
-
   MESSAGING_AUDIT M
   , SI_AUDIT SA
   , ORGANIZATION ORG
   , ORDERS O
-  , PRSNL P
-  , PRSNL_ALIAS PA
-  , PERSON PE
+  , ORDER_CATALOG OC
+  , MLTM_NDC_MAIN_DRUG_CODE MMDC
+  , PRSNL P;<----
+  , PERSON PE  ;<---
+  , PRSNL_ALIAS PA;<---
   , ORDER_DETAIL OD
   , PRSNL P1
   , ENCOUNTER E
-  , ORDER_CATALOG OC
-  , MLTM_NDC_MAIN_DRUG_CODE MMDC
 
- 
+  
+Plan M
 where m.messaging_audit_id != 0
-  and m.updt_dt_tm between cnvtlookbehind("14,d") and cnvtdatetime(curdate,curtime)
-  and sa.msg_ident = outerjoin(m.rx_identifier)
-  and org.organization_id = m.org_id
-  and o.order_id = m.order_id
-  and o.catalog_cd = oc.catalog_cd
-  and (OC.CKI = CONCAT("MUL.ORD!" , TRIM ( CNVTSTRING (MMDC.drug_identifier))))
-  and mmdc.main_multum_drug_code =
+
+
+Join SA
+where sa.msg_ident = outerjoin(m.rx_identifier)
+and sa.msg_trig_action_txt = "NEWRX"
+
+Join ORG
+where org.organization_id = m.org_id
+
+Join O
+where o.order_id = m.order_id
+
+Join OC
+where o.catalog_cd = oc.catalog_cd
+
+Join MMDC
+Where (OC.CKI = CONCAT("MUL.ORD!" , TRIM ( CNVTSTRING (MMDC.drug_identifier))))
+and mmdc.main_multum_drug_code =
   (
   select max (mmdc2.main_multum_drug_code)
   from mltm_ndc_main_drug_code mmdc2
   where (OC.CKI = CONCAT("MUL.ORD!" , TRIM ( CNVTSTRING (MMDC2.drug_identifier))))
   )
-  and p.person_id = m.ordering_phys_id
-  and m.person_id = pe.person_id
-  and od.order_id = o.order_id
-  and od.oe_field_meaning = "ROUTINGPHARMACYNAME"
-  and sa.msg_trig_action_txt = "NEWRX"
-  and m.action_prsnl_id = p1.person_id
-  and e.encntr_id = m.encntr_id
-  and pa.prsnl_alias_type_cd = value(uar_get_code_by("MEANING", 320, "NPI"))
- 
+  
+Join P
+where p.person_id = m.ordering_phys_id
+and p.physician_ind = 1
+and p.active_ind = 1
+
+Join PE
+where m.person_id = pe.person_id
+and pe.active_ind = 1
+
+Join PA
+where pe.person_id = pa.person_id
+and pa.prsnl_alias_type_cd = value(uar_get_code_by("MEANING", 320, "NPI"))
+and pa.active_ind = 1
+
+Join OD
+where od.order_id = o.order_id
+and od.oe_field_meaning = "ROUTINGPHARMACYNAME"
+
+Join P1
+Where m.action_prsnl_id = p1.person_id
+
+Join E
+Where e.encntr_id = m.encntr_id
 
 ORDER BY
   o.orig_order_dt_tm DESC
   , M.RX_IDENTIFIER
   , m.status_cd DESC
   , 0
-
  
 
-WITH NOCOUNTER, SEPARATOR=" ", FORMAT, maxrec = 10, time = 300
-
-go
+WITH NOCOUNTER, SEPARATOR=" ", FORMAT, time = 200, maxrec = 10
