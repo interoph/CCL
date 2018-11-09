@@ -35,7 +35,7 @@ FROM
   
 Plan M
 where m.messaging_audit_id != 0
-
+and m.updt_dt_tm between cnvtlookbehind("14,d") and cnvtdatetime(curdate,curtime)
 
 Join SA
 where sa.msg_ident = outerjoin(m.rx_identifier)
