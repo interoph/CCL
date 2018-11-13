@@ -69,7 +69,7 @@ where m.person_id = pe.person_id
 and pe.active_ind = 1
 
 Join PA
-where pe.person_id = pa.person_id
+where p.person_id = pa.person_id
 and pa.prsnl_alias_type_cd = value(uar_get_code_by("MEANING", 320, "NPI"))
 and pa.active_ind = 1
 
