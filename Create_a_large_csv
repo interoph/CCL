@@ -1,0 +1,80 @@
+;;;;how to create a large file, using order_catalog_synonym table as an excercise
+
+drop program 1_lvs_rnwitness_test go
+create program 1_lvs_rnwitness_test
+ 
+prompt
+	"Output to File/Printer/MINE" = "MINE"   ;* Enter or select the printer or file name to send this report to.
+ 
+with OUTDEV
+ 
+;declare  filename  =  VC  WITH  NOCONSTANT ( "" )
+;SET  filename  =  CONCAT (FORMAT ( CURDATE ,  "YYMMDD;;q" ),  FORMAT ( CURTIME , "HHMM;1;m" ),  "rnwitness.csv" )
+SET MODIFY FILESTREAM
+ 
+SELECT DISTINCT INTO "CCLUSERDIR:rnwitness.csv";"CCLUSERDIR:value(filename)"
+ 
+Order_Primary = SUBSTRING(1,40,OC.primary_mnemonic)
+,order_mnemonic = SUBSTRING(1,40,ocs.mnemonic)
+,Order_type= uar_get_code_display(ocs.mnemonic_type_cd)
+,nursing_witness_flag = ocs.witness_flag
+,facility_cds = uar_get_code_display(oax.facility_cd)
+,flex_obj_cds = uar_get_code_display(oax.flex_obj_cd)
+,flex_obj_type_cds = uar_get_code_display(oax.flex_obj_type_cd)
+,ocs_col_name_cds = uar_get_code_display(oax.ocs_col_name_cd)
+,updt_tm =oax.updt_dt_tm
+,Rnwitness_updt_id = oax.updt_id
+,analyst = p.name_full_formatted ;SUBSTRING(1,40,p.name_full_formatted)
+ 
+ 
+from
+order_Catalog oc
+,order_catalog_synonym ocs
+,ocs_attr_xcptn oax
+,prsnl p
+ 
+Plan OC
+where oc.catalog_type_cd  = 2516.00
+and oc.active_ind = 1
+ 
+join ocs
+where oc.catalog_cd = ocs.catalog_cd
+and ocs.catalog_type_cd = 2516.00
+and ocs.mnemonic_type_cd in (
+;CODE_VALUE	DISPLAY
+       2580.00	;Brand Name
+       ,2581.00	;Direct Care Provider
+     ,614542.00	;C - Dispensable Drug Names;
+     ,614548.00	;Y - Generic Products
+     ,614544.00	;M - Generic Miscellaneous Products
+     ,614543.00	;E - IV Fluids and Nicknames
+       ,2583.00	;Primary
+       ,2584.00	;Rx Mnemonic
+     ,614549.00	;Z - Trade Products
+     ,614545.00	;N - Trade Miscellaneous Products
+		)
+and ocs.active_ind =1
+;and ocs.witness_flag = 1
+;or ocs.witness_flag = 0
+ 
+ 
+join oax
+where oax.synonym_id = outerjoin(ocs.synonym_id)
+ 
+join p
+where p.person_id = outerjoin(oax.updt_id)
+ 
+order by
+oc.primary_mnemonic
+, ocs.mnemonic
+, facility_cds
+ 
+WITH PCFORMAT (^"^, ^,^ , 1), FORMAT = STREAM, FORMAT, time = 1500
+ 
+ 
+call echo(filename)
+ 
+end
+ 
+go
+ 
