@@ -1,0 +1,66 @@
+
+SELECT
+            Powerplan = p.description
+            , primary_mnemonic = oc.primary_mnemonic
+            , CPOE_ORDER = o.mnemonic
+         	, os.order_sentence_display_line
+
+ 
+FROM
+            pathway_catalog p
+            , pathway_comp pc
+            , order_catalog_synonym o
+            , order_catalog oc
+            , pw_comp_os_reltn pco
+            , order_sentence os
+            , order_sentence_detail osd
+			, oe_field_meaning ofm
+
+ 
+PLAN p ; Pathway_catalog
+	WHERE p.pathway_catalog_id > 0
+	;and P.description = "Abdominal Pain PEDS Surgery" ; to test for one specific powerplan
+ 
+JOIN pc ; Pathway_comp
+	WHERE pc.pathway_catalog_id = p.pathway_catalog_id
+	and pc.parent_entity_id = (select distinct   ; nested query to get around CLOB error when using Distinct upfront
+								o.synonym_id
+								from
+	 							order_catalog_synonym o
+								where o.active_ind = 1
+								and o.catalog_type_cd = 2516.00
+								)
+ 
+JOIN o ; Order_Catalog_Synonym
+	WHERE o.synonym_id = outerjoin(pc.parent_entity_id)
+ 
+JOIN oc ; Order_catalog
+	WHERE oc.catalog_cd = outerjoin(o.catalog_cd)
+ 
+JOIN pco ; PW_COMP_OS_RELTN
+	WHERE pco.pathway_comp_id = outerjoin(pc.pathway_comp_id)
+	and  pco.order_sentence_id = (select distinct   ; nested query to get around CLOB error when using Distinct upfront
+								os.order_sentence_id
+								from
+	 							order_sentence os
+								)
+ 
+JOIN os ; ORDER_SENTENCE
+	WHERE os.order_sentence_id = outerjoin(pco.order_sentence_id)
+ 	and os.usage_flag > 0
+ 	
+Join osd
+	where osd.order_sentence_id = os.order_sentence_id
+	and osd.oe_field_value = 1  
+ 
+Join ofm
+	where ofm.oe_field_meaning_id = osd.oe_field_meaning_id
+	and ofm.oe_field_meaning =  "INFUSEOVER"
+ 
+ 
+ORDER BY
+            p.description
+            ,oc.primary_mnemonic
+            , pco.order_sentence_id
+ 
+WITH MAXREC = 2000, time = 300
