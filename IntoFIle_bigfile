@@ -1,0 +1,62 @@
+; should be > 3 million records.. ufta.
+drop program 1_lvs_rnwitness_test go
+create program 1_lvs_rnwitness_test
+
+prompt
+                "Output to File/Printer/MINE" = "MINE"   ;* Enter or select the printer or file name to send this report to.
+
+with OUTDEV
+
+;declare  filename  =  VC  WITH  NOCONSTANT ( "" )
+;SET  filename  =  CONCAT (FORMAT ( CURDATE ,  "YYMMDD;;q" ),  FORMAT ( CURTIME , "HHMM;1;m" ),  "rnwitness.csv" )
+SET MODIFY FILESTREAM 
+
+;SELECT INTO OUTDEV;value(filename)
+SELECT INTO "CCLUSERDIR:rnwitness.csv";"CCLUSERDIR:value(filename)"
+
+Order_Primary = SUBSTRING(1,100,OC.primary_mnemonic)
+,order_mnemonic = SUBSTRING(1,100,ocs.mnemonic)
+,Order_type= uar_get_code_display(ocs.mnemonic_type_cd)
+,nursing_witness_flag = ocs.witness_flag
+,facility_cds = uar_get_code_display(oax.facility_cd)
+,flex_obj_cds = uar_get_code_display(oax.flex_obj_cd)
+,flex_obj_type_cds = uar_get_code_display(oax.flex_obj_type_cd)
+,ocs_col_name_cds = uar_get_code_display(oax.ocs_col_name_cd)
+,updt_tm =oax.updt_dt_tm
+,analyst = SUBSTRING(1,100,p.name_full_formatted)
+
+from
+order_Catalog oc
+,order_catalog_synonym ocs
+,ocs_attr_xcptn oax
+,prsnl p
+
+Plan OC
+where oc.active_ind = 1
+and oc.catalog_type_cd  = 2516.00
+
+join ocs
+where oc.catalog_cd = ocs.catalog_cd
+and ocs.active_ind = 1
+;and ocs.catalog_type_cd = 2516.00
+;and ocs.witness_flag = 1
+;or ocs.witness_flag = 0
+
+join oax
+where oax.synonym_id = outerjoin(ocs.synonym_id)
+
+join p
+where p.person_id = outerjoin(oax.updt_id)
+
+ 
+order by
+oc.primary_mnemonic
+, ocs.mnemonic
+, facility_cds
+
+WITH PCFORMAT (^"^, ^,^ , 1), FORMAT = STREAM, FORMAT,time = 300
+
+;call echo(filename)
+
+end 
+go
