@@ -71,7 +71,7 @@ and sa.location_cd+0 =(
 ;and sa2.location_cd+0 = (select loc_facility_cd
 ;						from encounter
 ;						where active_ind = 1
-;						and loc_facility_cd in (  272051289.00;	DH_Doctors
+;						and loc_facility_cd in (  xxxxxxxxxxx
  
 ;						select code_value
 ;						from code_value
