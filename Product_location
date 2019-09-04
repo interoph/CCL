@@ -1,0 +1,93 @@
+!Pharmacy Product Location
+ 
+Select Distinct
+md.item_id
+,Description = mi.value
+,pyxis_id = mi2.value
+;,Facility = uar_get_code_display(sa2.location_cd)
+;,facility = uar_get_code_display(en.loc_facility_cd)
+,Pyxis_station = uar_get_code_display(sa.location_cd)
+ 
+ 
+From
+	medication_definition md
+	, order_catalog_item_r ocir
+	, med_identifier mi
+	, med_identifier mi2
+	, med_def_flex mdf
+	, med_flex_object_idx mfoi
+	, med_flex_object_idx mfoi2
+	, stored_at sa
+;	, stored_at sa2
+	, med_dispense mdisp
+ 
+Plan md
+;where md.item_id > 0
+ 
+Join ocir
+where md.item_id = ocir.item_id
+ 
+Join mi
+where mi.item_id = ocir.item_id
+and mi.active_ind = 1
+and mi.med_identifier_type_cd =        3097.00;	Description
+and mi.med_product_id = 0
+and mi.sequence = 1
+ 
+Join mi2
+where mi2.item_id = ocir.item_id
+and mi2.med_identifier_type_cd =        3106.00;	Pyxis ID
+and mi2.active_ind = 1
+and mi2.sequence = 1
+and mi2.med_product_id = 0
+ 
+ 
+join mdf
+where mdf.item_id = md.item_id
+ 
+join mfoi
+where mfoi.med_def_flex_id = mdf.med_def_flex_id
+and mfoi.flex_object_type_cd =      665863.00	;Orderable
+ 
+Join mfoi2
+where mfoi2.med_def_flex_id = mdf.med_def_flex_id
+and mfoi2.flex_object_type_cd =      665859.00;	Dispense
+ 
+ 
+Join sa
+where mi.item_id = sa.item_id
+and sa.location_cd+0 =(
+						select code_value
+						from code_value
+						where code_Set = 220
+						and active_ind = 1
+						and cdf_meaning = "PHARM"
+						and DISPLAY_KEY = "*PYXIS"
+						)
+ 
+ 
+;join sa2
+;where sa2.item_id = SA.item_id
+;and sa2.location_cd+0 = (select loc_facility_cd
+;						from encounter
+;						where active_ind = 1
+;						and loc_facility_cd in (  272051289.00;	DH_Doctors
+ 
+;						select code_value
+;						from code_value
+;						where code_Set = 220
+;						and active_ind = 1
+;						and cdf_meaning = "FACILITY"
+						;and DISPLAY_KEY = "*PYXIS"
+ 
+ 
+;						))
+ 
+join mdisp
+where mdisp.med_dispense_id= mfoi2.parent_entity_id
+ 
+Order by
+MI.value_key
+,sa.location_cd
+ 
+with time = 120, nocounter, separator = " ", Format
